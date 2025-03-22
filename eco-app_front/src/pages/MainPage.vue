@@ -45,7 +45,7 @@
                 <div class="habit_group">
                     <p class="habit_block_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                     <p class="habit_block_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                    <router-link to="/register" class="eco-button">Перейти</router-link>
+                    <router-link to="/login" class="eco-button">Перейти</router-link>
                 </div>
             </section>
             <section class="about_block">
