@@ -10,19 +10,18 @@
     </form>
   </div>
 </template>
+
 <script>
 import { store } from '../store.js'
-import axiosInstance, { API_URL } from '../http.js'
-import axios from 'axios'
-import { onMounted, computed } from 'vue';
+import axiosInstance from '../http.js'
+
 
 export default {
   data() {
     return {
       email: '',
       password: '',
-      users: store.state.users,
-      step: 1,
+      // users: store.state.users,
     }
   },
   methods: {
@@ -34,11 +33,9 @@ export default {
           
         })
         .then((res) => {
-          console.log(1111111)
           window.localStorage.setItem('access_token', res.data.access)
           window.localStorage.setItem('refresh_token', res.data.refresh)
           store.commit('setIsAuthenticated', Boolean(res.data.access))
-          console.log('ffjfejj')
         })
         .catch((err) => {
           console.log(err)
@@ -56,15 +53,12 @@ export default {
           console.log(user.role.title)
           if (user.role.title === 'Пользователь' ) {
             console.log(user.role.title)
-            window.location.href = 'profile'
+            window.location.href = 'habits'
             return
           }
         })
         .catch((err) => {
           console.log(err)
-        })
-        .finally(() => {
-
         })
     }
   },

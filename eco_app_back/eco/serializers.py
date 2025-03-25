@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User, Role
+from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit
 
 class RoleSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -38,4 +38,58 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
         return instance
 
-    
+
+class CategorySerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = ['url', 'id', 'title']
+
+class HabitSerializer(serializers.HyperlinkedModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super(HabitSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 1
+
+    class Meta:
+        model = Habit
+        fields = '__all__'
+
+class FormSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Form
+        fields = ['url', 'id', 'title']
+
+class UserHabitSerializer(serializers.HyperlinkedModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super(UserHabitSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 2
+
+    class Meta:
+        model = UserHabit
+        fields = ['url', 'id', 'habit', 'plan', 'status']
+
+class UserPlanSerializer(serializers.HyperlinkedModelSerializer):
+    habits = UserHabitSerializer(many=True, read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super(UserPlanSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 1
+
+    class Meta:
+        model = UserPlan
+        fields = '__all__'
+
+

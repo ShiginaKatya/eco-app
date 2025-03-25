@@ -7,6 +7,9 @@ export const store = createStore({
       users: [],
       user: {},
       roles: [],
+      plans: [],
+      habits: [],
+      plan: {},
     }
   },
   getters: {
@@ -24,6 +27,15 @@ export const store = createStore({
       },
     setRoles(state, roles) {
         state.roles = roles
+      },
+    setPlans(state, plans) {
+        state.plans = plans
+      },
+    setHabits(state, habits) {
+        state.habits = habits
+      },
+    setPlan(state, plan) {
+        state.plan = plan
       },
 }
 }

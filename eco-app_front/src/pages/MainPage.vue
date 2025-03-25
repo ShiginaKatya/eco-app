@@ -72,6 +72,8 @@
 <style scoped>
 .main_page{
     margin: 0 auto;
+    max-width: 1200px;
+    min-width: 320px;
 }
 .main_header{
     margin: 10px;
