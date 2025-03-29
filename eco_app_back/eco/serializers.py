@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit
+from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, Achievement, UserAchievement
 
 class RoleSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -64,7 +64,23 @@ class FormSerializer(serializers.HyperlinkedModelSerializer):
         model = Form
         fields = ['url', 'id', 'title']
 
+class UserAchievementSerializer(serializers.HyperlinkedModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        super(UserAchievementSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 1
+
+    class Meta:
+        model = UserAchievement
+        fields = '__all__'
+
+
 class UserHabitSerializer(serializers.HyperlinkedModelSerializer):
+    
     def __init__(self, *args, **kwargs):
         super(UserHabitSerializer, self).__init__(*args, **kwargs)
         request = self.context.get('request')
@@ -92,4 +108,9 @@ class UserPlanSerializer(serializers.HyperlinkedModelSerializer):
         model = UserPlan
         fields = '__all__'
 
+class AchievementSerializer(serializers.HyperlinkedModelSerializer):
+    
+    class Meta:
+        model = Achievement
+        fields = ['url', 'id', 'title', 'description', 'icon']
 

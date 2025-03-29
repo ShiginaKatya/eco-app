@@ -90,3 +90,28 @@ class UserHabit(models.Model):
 
     def __str__(self):
         return self.habit.title
+
+class Achievement(models.Model):
+    title = models.CharField(verbose_name='Наименование награды', max_length=255)
+    description = models.TextField(verbose_name='Описание', null=True)
+    icon = models.ImageField(verbose_name='Иконка награды', upload_to='achievements')
+    points_required = models.PositiveIntegerField(verbose_name='Требуемые баллы')
+
+    class Meta:
+        verbose_name = 'Награда'
+        verbose_name_plural = 'Награды'
+
+    def __str__(self):
+        return self.title
+
+class UserAchievement(models.Model):
+    user = models.ForeignKey(verbose_name='Пользователь', to=User, on_delete=models.PROTECT)
+    achievement = models.ForeignKey(verbose_name='Награда', to=Achievement, on_delete=models.PROTECT)
+
+    class Meta:
+        verbose_name = 'Награда пользователя'
+        verbose_name_plural = 'Награды пользователей'
+
+    def __str__(self):
+        return self.achievement.title
+

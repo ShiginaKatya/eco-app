@@ -2,9 +2,9 @@
       <div class="modal">
         <div class="modal_title">
           <p class="title">Добавить новый план</p>
-          <button  class="close" @click="closeModal()"></button>
+          <button  class="close" @click="closeModal"></button>
         </div>
-        <form class="modal_form" @submit.prevent ="addPlan">
+        <form class="modal_form" >
             <input class="modal_input" v-model="goal" placeholder="Цель" type="text"/>
             <multiselect class="modal_input" id="multiselect" v-model="value" :options="habits" :multiple="true" :close-on-select="false" :clear-on-select="false"
                  :preserve-search="true" placeholder="Выберите привычки" label="title" track-by="title" :preselect-first="true">
@@ -15,7 +15,7 @@
                 </template>
             </multiselect>
             <p v-for="valu in value" :key="valu.id">{{valu.title}}</p>
-            <button class="eco-button" type="submit" @click="closeModal()">Добавить</button>
+            <button class="eco-button"  @click.prevent="addPlan()" >Добавить</button>
         </form>
       </div>
 </template>
@@ -47,6 +47,9 @@ export default {
           })
       })
     }, 
+    // props: {
+    //   showModal: Boolean,
+    // },
     data () {
       return {
         value: [],
@@ -54,9 +57,13 @@ export default {
         goal: '',
         user: user,
         plan: plan,
+        showModal: true,
 
     }},
     methods: {
+      closeModal() {
+        this.$emit('close'); 
+      },
       async addPlan(){
         await axiosInstance
           .post('userplans/', {
@@ -71,12 +78,12 @@ export default {
           .catch((err) => {
             console.log(err)
           }) 
-        await 
+        await Promise.all(
           this.value.map(valu =>
             axiosInstance
               .post('userhabits/', {
                 habit: valu.url,
-                plan: this.plan.url,
+                plan:  store.state.plan.url,
                 status: 'False'
               })
               .then((res) => {
@@ -84,9 +91,11 @@ export default {
               })  
               .catch((err) => {
                 console.log(err)
-              }) 
-           )   
+              })))
+        console.log(111111111111)
+        await this.$emit('close')
       },
+      
 }}
 </script>
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
@@ -100,7 +109,7 @@ export default {
   border: gray 1px solid;
   border-radius: 25px;
   max-width: 400px;
-  height: 250px;
+  height: fit-content;
   margin: auto;
   position: fixed;
 }

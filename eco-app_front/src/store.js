@@ -10,6 +10,7 @@ export const store = createStore({
       plans: [],
       habits: [],
       plan: {},
+      achievement: {}
     }
   },
   getters: {
@@ -36,6 +37,9 @@ export const store = createStore({
       },
     setPlan(state, plan) {
         state.plan = plan
+      },
+    setAchievement(state, achievement) {
+        state.achievement = achievement
       },
 }
 }
