@@ -69,7 +69,7 @@ export default {
           .post('userplans/', {
             user: this.user.url,
             goal: this.goal,
-            status: 'False'
+            status: 'False',
           })
           .then((res) => {
             console.log(res.data)
@@ -94,6 +94,7 @@ export default {
               })))
         console.log(111111111111)
         await this.$emit('close')
+        this.value = []
       },
       
 }}

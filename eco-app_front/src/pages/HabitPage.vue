@@ -23,11 +23,14 @@
             </div>
             <div v-if="achievementNotify" class="modal">
               <div class="modal_title">
-                <p class="title">{{achievementNotify.achievement.icon}}</p>
+                <p class="title">Вы получили награду!</p>
                 <button  class="close" @click="achievementNotify = null"></button>
               </div>
-              <div>
-                <img :src='achievementNotify.achievement.icon' alt="">
+              <div class="modal_body">
+                <p class="body_title">{{achievementNotify.achievement.title}}</p>
+                <img class="modal_img" :src='achievementNotify.achievement.icon' alt="Иконка награды">
+                <p class="body_description">{{achievementNotify.achievement.description}}</p>
+                <button  class="eco-button" @click="achievementNotify = null">ОК</button>
               </div>
             </div>
         </main>
@@ -209,7 +212,7 @@ export default {
   background: white;
   border: gray 1px solid;
   border-radius: 25px;
-  max-width: 400px;
+  max-width: 300px;
   height: fit-content;
   margin: auto;
   position: fixed;
@@ -228,6 +231,21 @@ export default {
   border: none;
   background-image: url('close.svg');
   background-size: cover;
+}
+.modal_img{
+  width: 60px;
+  height: 60px;
+}
+.modal_body{
+  display: flex;
+  margin: 20px auto;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+.body_title{
+  font-weight: 500;
 }
 
 </style>

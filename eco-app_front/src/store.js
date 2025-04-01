@@ -10,7 +10,12 @@ export const store = createStore({
       plans: [],
       habits: [],
       plan: {},
-      achievement: {}
+      achievement: {},
+      challenges: [],
+      userchallenge: {},
+      userchallenges: [],
+      userstat: {},
+
     }
   },
   getters: {
@@ -24,23 +29,36 @@ export const store = createStore({
       state.users = usersList
     },
     setUser(state, user) {
-        state.user = user
-      },
+      state.user = user
+    },
     setRoles(state, roles) {
-        state.roles = roles
-      },
+      state.roles = roles
+    },
     setPlans(state, plans) {
-        state.plans = plans
-      },
+      state.plans = plans
+    },
     setHabits(state, habits) {
-        state.habits = habits
-      },
+      state.habits = habits
+    },
     setPlan(state, plan) {
-        state.plan = plan
-      },
+      state.plan = plan
+    },
     setAchievement(state, achievement) {
-        state.achievement = achievement
-      },
+      state.achievement = achievement
+    },
+    setChallenges(state, challenges) {
+      state.challenges = challenges
+    },
+    setUserChallenge(state, userchallenge) {
+      state.userchallenge = userchallenge
+    },
+    setUserChallenges(state, userchallenges) {
+      state.userchallenges = userchallenges
+    },
+    setUserStat(state, userstat) {
+      state.userstat = userstat
+    }
+
 }
 }
 )
