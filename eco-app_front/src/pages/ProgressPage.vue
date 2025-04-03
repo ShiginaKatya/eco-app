@@ -1,24 +1,24 @@
 <template>
-    <div class="page">
-        <aside class="sidebar">
-            <ProfileMenu></ProfileMenu>
-        </aside>
-        <main class="main">
-            <ul>
-              <li v-for="userStat in userStats" :key="userStat.id">
-                  <p>{{userStat.user.username}}</p>
-                  <p>{{userStat.points}}</p>
-                  <p>{{userStat.completed_plans}}</p>
-                  <p></p>
-                  <ul>
-                    <li v-for="user_achievement in userStat.all_achievements" :key="user_achievement.id">
-                      {{user_achievement.achievement.title}}
-                    </li>
-                  </ul>
-              </li>
-            </ul>
-        </main>
-    </div>
+  <div class="page">
+    <aside class="sidebar">
+        <ProfileMenu></ProfileMenu>
+    </aside>
+    <main class="main">
+      <ul>
+        <li v-for="userStat in userStats" :key="userStat.id">
+          <p>{{userStat.user.username}}</p>
+          <p>{{userStat.points}}</p>
+          <p>{{userStat.completed_plans}}</p>
+          <p></p>
+          <ul>
+            <li v-for="user_achievement in userStat.all_achievements" :key="user_achievement.id">
+              {{user_achievement.achievement.title}}
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </main>
+  </div>
 </template>
 <script>
 import ProfileMenu from '../components/ProfileMenu.vue'

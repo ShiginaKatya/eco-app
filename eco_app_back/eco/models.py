@@ -1,8 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .managers import UserManager
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_init
 from django.dispatch import receiver
+import random
+
 
 class Role(models.Model):
     title = models.CharField(verbose_name='Роль', max_length=255)
@@ -212,4 +214,10 @@ def determine_level(sender, instance, **kwargs):
     for level in levels:
         if (level.min_points <= instance.points):
             instance.level = level
+
+# @receiver(pre_save, sender=UserPlan)
+# def determine_form(sender, instance, **kwargs):
+#     if not created:
+#         forms = Form.objects.all()
+#         instance.form = random.choice(forms)
 

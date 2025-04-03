@@ -1,40 +1,40 @@
 <template>
-    <div class="page">
-        <aside class="sidebar">
-            <ProfileMenu></ProfileMenu>
-        </aside>
-        <main class="main">
-            <AddPlanModal v-if="showModal" @close="closeModal"></AddPlanModal>
-            <button class="eco-button" @click="openModal()">Создать план</button>
-            <div class="plan_list">
-              <ul class="plan_card" v-for="plan in plans" :key="plan.id">
-                <li class="plan_goal"> {{plan.goal}}</li>
-                <li class="plan_habit" v-for="habit in plan.habits" :key="habit.id">
-                    <p class="habit_title">{{habit.habit.title}}</p>
-                    <button class="eco-button"  @click="complete(habit.id)" :style="getButtonStyle(habit.status)">
-                      <span v-if="habit.status">Выполнено</span>
-                      <span v-else >Выполнить</span>
-                    </button>
-                </li>
-                <li>
-                  <button class="eco-button">Пройти анкетирование</button>
-                </li>
-              </ul>
-            </div>
-            <div v-if="achievementNotify" class="modal">
-              <div class="modal_title">
-                <p class="title">Вы получили награду!</p>
-                <button  class="close" @click="achievementNotify = null"></button>
-              </div>
-              <div class="modal_body">
-                <p class="body_title">{{achievementNotify.achievement.title}}</p>
-                <img class="modal_img" :src='achievementNotify.achievement.icon' alt="Иконка награды">
-                <p class="body_description">{{achievementNotify.achievement.description}}</p>
-                <button  class="eco-button" @click="achievementNotify = null">ОК</button>
-              </div>
-            </div>
-        </main>
-    </div>
+  <div class="page">
+    <aside class="sidebar">
+        <ProfileMenu></ProfileMenu>
+    </aside>
+    <main class="main">
+      <AddPlanModal v-if="showModal" @close="closeModal"></AddPlanModal>
+      <button class="eco-button" @click="openModal()">Создать план</button>
+      <div class="plan_list">
+        <ul class="plan_card" v-for="plan in plans" :key="plan.id">
+          <li class="plan_goal"> {{plan.goal}}</li>
+          <li class="plan_habit" v-for="habit in plan.habits" :key="habit.id">
+            <p class="habit_title">{{habit.habit.title}}</p>
+            <button class="eco-button"  @click="complete(habit.id)" :style="getButtonStyle(habit.status)">
+              <span v-if="habit.status">Выполнено</span>
+              <span v-else >Выполнить</span>
+            </button>
+          </li>
+          <li>
+            <button class="eco-button">Пройти анкетирование</button>
+          </li>
+        </ul>
+      </div>
+      <div v-if="achievementNotify" class="modal">
+        <div class="modal_title">
+          <p class="title">Вы получили награду!</p>
+          <button  class="close" @click="achievementNotify = null"></button>
+        </div>
+        <div class="modal_body">
+          <p class="body_title">{{achievementNotify.achievement.title}}</p>
+          <img class="modal_img" :src='achievementNotify.achievement.icon' alt="Иконка награды">
+          <p class="body_description">{{achievementNotify.achievement.description}}</p>
+          <button  class="eco-button" @click="achievementNotify = null">ОК</button>
+        </div>
+      </div>
+    </main>
+  </div>
 </template>
 <script>
 import ProfileMenu from '../components/ProfileMenu.vue'
@@ -45,7 +45,6 @@ import axiosInstance from '../http.js'
 import axios from 'axios'
 
 const user = computed(() => store.state.user) 
-
 const plans = computed(() => store.state.plans)
 const achievementNotify = computed(() => store.state.achievement)
 

@@ -94,7 +94,6 @@ export default {
               })))
         console.log(111111111111)
         await this.$emit('close')
-        this.value = []
       },
       
 }}

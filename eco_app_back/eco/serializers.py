@@ -126,7 +126,7 @@ class ChallengeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Challenge
-        fields = '__all__'
+        fields = ['url', 'id', 'title', 'category', 'description', 'tasks', 'goal', 'achievement', 'status', 'start_date', 'finish_date']
 
 class TaskSerializer(serializers.HyperlinkedModelSerializer):
     def __init__(self, *args, **kwargs):
@@ -164,7 +164,7 @@ class UserChallengeSerializer(serializers.HyperlinkedModelSerializer):
         if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
             self.Meta.depth = 0
         else:
-            self.Meta.depth = 1
+            self.Meta.depth = 2
 
     class Meta:
         model = UserChallenge
