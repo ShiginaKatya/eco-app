@@ -61,16 +61,39 @@ class Habit(models.Model):
 
     def __str__(self):
         return self.title
+    
+class FormQuestion(models.Model):
+    title = models.CharField(verbose_name='Вопрос', max_length=255)
+    
+    class Meta:
+        verbose_name = 'Вопрос'
+        verbose_name_plural = 'Вопросы'
+
+    def __str__(self):
+        return self.title
 
 class Form(models.Model):
     title = models.CharField(verbose_name='Анкета', max_length=255)
-    
+    questions = models.ManyToManyField(verbose_name='Вопросы', to=FormQuestion)
+
     class Meta:
         verbose_name = 'Анкета'
         verbose_name_plural = 'Анкеты'
 
     def __str__(self):
         return self.title
+
+class UserAnswer(models.Model):
+    answer = models.CharField(verbose_name='Ответ', max_length=255)
+    user = models.ForeignKey(verbose_name='Пользователь', to=User, on_delete=models.CASCADE)
+    question = models.ForeignKey(verbose_name='Вопрос', to=FormQuestion, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Ответ полььзователя'
+        verbose_name_plural = 'Ответы пользователей'
+
+    def __str__(self):
+        return self.anwser
 
 class UserPlan(models.Model):
     user = models.ForeignKey(verbose_name='Пользователь', to=User, on_delete=models.PROTECT)
@@ -221,3 +244,71 @@ def determine_level(sender, instance, **kwargs):
 #         forms = Form.objects.all()
 #         instance.form = random.choice(forms)
 
+class Advice(models.Model):
+    title = models.CharField(verbose_name='Cовет', max_length=255)
+    description = models.TextField(verbose_name='Описание', null=True)
+    icon = models.ImageField(verbose_name='Иконка совета', upload_to='advices')
+    category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Совет'
+        verbose_name_plural = 'Советы'
+
+    def __str__(self):
+        return self.title
+
+class Guide(models.Model):
+    title = models.CharField(verbose_name='Руководство', max_length=255)
+    description = models.TextField(verbose_name='Описание', null=True)
+    icon = models.ImageField(verbose_name='Изображение для руководства', upload_to='guides')
+    category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = 'Руководство'
+        verbose_name_plural = 'Руководства'
+
+    def __str__(self):
+        return self.title
+
+
+class Favorite(models.Model):
+    FAVORITE_CHOICE = [
+        ('A', 'Совет'),
+        ('G', 'Руководство')
+    ]
+    
+    user = models.ForeignKey(verbose_name='Пользователь', to=User, on_delete=models.CASCADE)
+    advice = models.ForeignKey(verbose_name='Совет', to=Advice, on_delete=models.CASCADE, null=True)
+    guide = models.ForeignKey(verbose_name='Руководство', to=Guide, on_delete=models.CASCADE, null=True)
+    favorite_type = models.CharField(verbose_name='Тип', choices=FAVORITE_CHOICE, max_length=255)
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное пользователей'
+
+    def __str__(self):
+        return self.user.username
+
+class Event(models.Model):
+    STATUS_CHOICE = [
+        ('A', 'Назначено'),
+        ('R', 'Перенесено'),
+        ('С', 'Завершено'),
+        ('В', 'Отменено')
+
+    ]
+    title = models.CharField(verbose_name='Название мероприятия', max_length=255)
+    description = models.TextField(verbose_name='Описание', null=True)
+    afisha_image = models.ImageField(verbose_name='Изображение для объявления', upload_to='events', null=True)
+    event_date = models.DateField(verbose_name='Дата мероприятия')
+    report = models.TextField(verbose_name='Отчет о прохождении', null=True)
+    report_image =  models.ImageField(verbose_name='Изображение для отчета', upload_to='reports', null=True)
+    status = models.CharField(verbose_name='Статус мероприятия', choices=STATUS_CHOICE, max_length=255)
+    user = models.ForeignKey(verbose_name='Организатор мероприятия', to=User, on_delete=models.CASCADE)
+    
+    class Meta:
+        verbose_name = 'Мероприятие'
+        verbose_name_plural = 'Мероприятия'
+
+    def __str__(self):
+        return self.title

@@ -15,6 +15,9 @@ export const store = createStore({
       userchallenge: {},
       userchallenges: [],
       userstat: {},
+      advices: [],
+      events: [],
+      favorites: [],
 
     }
   },
@@ -57,7 +60,16 @@ export const store = createStore({
     },
     setUserStat(state, userstat) {
       state.userstat = userstat
-    }
+    },
+    setAdvices(state, advices) {
+      state.advices = advices
+    },
+    setEvents(state, events) {
+      state.events = events
+    },
+    setFavorites(state, favorites) {
+      state.favorites = favorites
+    },
 
 }
 }

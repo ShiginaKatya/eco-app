@@ -1,14 +1,14 @@
 # from django.shortcuts import render
 
 from rest_framework import viewsets
-from rest_framework.decorators import action
-
-from .serializers import UserSerializer, RoleSerializer, CategorySerializer, HabitSerializer, FormSerializer, UserPlanSerializer, UserHabitSerializer, AchievementSerializer, UserAchievementSerializer, ChallengeSerializer, TaskSerializer, UserChallengeSerializer, UserTaskSerializer, UserStatSerializer, LevelSerializer
-from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, Achievement, UserAchievement, Task, Challenge, UserChallenge, UserTask, UserStat, Level
+from .serializers import UserSerializer, RoleSerializer, CategorySerializer, HabitSerializer, FormSerializer, UserPlanSerializer, UserHabitSerializer, AchievementSerializer, UserAchievementSerializer, ChallengeSerializer, TaskSerializer, UserChallengeSerializer, UserTaskSerializer, UserStatSerializer, LevelSerializer, FormQuestionSerializer, UserAnswerSerializer, AdviceSerializer, GuideSerializer, FavoriteSerializer, EventSerializer
+from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, Achievement, UserAchievement, Task, Challenge, UserChallenge, UserTask, UserStat, Level, FormQuestion, UserAnswer, Advice, Guide, Favorite, Event
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 import random
+from rest_framework.decorators import action
+from django_filters.rest_framework import DjangoFilterBackend
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()
@@ -30,16 +30,33 @@ class FormViewSet(viewsets.ModelViewSet):
     queryset = Form.objects.all()
     serializer_class = FormSerializer
 
+class FormQuestionViewSet(viewsets.ModelViewSet):
+    queryset = FormQuestion.objects.all()
+    serializer_class = FormQuestionSerializer
+
+class UserAnswerViewSet(viewsets.ModelViewSet):
+    queryset = UserAnswer.objects.all()
+    serializer_class = UserAnswerSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 class UserPlanViewSet(viewsets.ModelViewSet):
     queryset = UserPlan.objects.all()
     serializer_class = UserPlanSerializer
 
-    def get_queryset(self):
-        return UserPlan.objects.filter(user=self.request.user, status=False)
+    # def get_queryset(self):
+    #     return UserPlan.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         forms = Form.objects.all()
         serializer.save(user=self.request.user, form = random.choice(forms))
+    
+    @action(detail=False)
+    def latest(self, request):
+        plans = UserPlan.objects.filter(user=self.request.user).order_by("-id")[0:1]
+        serializer = UserPlanSerializer(plans, many=True, context={'request': request})
+        return Response(serializer.data)
 
 class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
@@ -48,7 +65,6 @@ class AchievementViewSet(viewsets.ModelViewSet):
 class UserAchievementViewSet(viewsets.ModelViewSet):
     queryset = UserAchievement.objects.all()
     serializer_class = UserAchievementSerializer
-
 
 class UserHabitViewSet(viewsets.ModelViewSet):
     queryset = UserHabit.objects.all()
@@ -109,6 +125,12 @@ class UserChallengeViewSet(viewsets.ModelViewSet):
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False)
+    def latest(self, request):
+        challenges = UserChallenge.objects.filter(user=self.request.user).order_by("-id")[0:2]
+        serializer = UserChallengeSerializer(challenges, many=True, context={'request': request})
+        return Response(serializer.data)
 
     
 
@@ -148,6 +170,53 @@ class UserStatViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return UserStat.objects.filter(user=self.request.user)
 
+class AdviceViewSet(viewsets.ModelViewSet):
+    queryset = Advice.objects.all()
+    serializer_class = AdviceSerializer
 
+class GuideViewSet(viewsets.ModelViewSet):
+    queryset = Guide.objects.all()
+    serializer_class = GuideSerializer
+
+class FavoriteViewSet(viewsets.ModelViewSet):
+    queryset = Favorite.objects.all()
+    serializer_class = FavoriteSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['favorite_type']
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            favorites = Favorite.objects.filter(user=request.user)
+            for favorite in favorites:
+                favorite_serializer = FavoriteSerializer(favorite, context={'request': request})
+                if favorite_serializer.data['advice'] == request.data['advice']:
+                    return Response({'title': 'Совет уже добавлен'}, status=status.HTTP_400_BAD_REQUEST)
+                    break
+                if favorite_serializer.data['guide'] == request.data['guide']:
+                    return Response({'title': 'Руководство уже добавлено'}, status=status.HTTP_400_BAD_REQUEST)
+                    break
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False)
+    def latest(self, request):
+        favorites = Favorite.objects.filter(user=self.request.user).order_by("-id")[0:5]
+        serializer = FavoriteSerializer(favorites, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    # @action(detail=False)
+    # def advices(self, request):
+    #     advices = Favorite.objects.filter(favorite_type='A')
+    #     serializer = FavoriteSerializer(advices, many=True, context={'request': request})
+    #     return Response(serializer.data)
+
+class EventViewSet(viewsets.ModelViewSet):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
 
     

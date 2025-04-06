@@ -1,12 +1,12 @@
 <template>
-  <div>
-    <h2>Вход</h2>
-    <form @submit.prevent ="login">
-      <label for="" class="email_label">Email</label>
-      <input  v-model="email" type="email"  />
-      <label for="" class="password_label">Пароль</label>
-      <input v-model="password" type="password" />
-      <button  type="submit">Войти</button>
+  <div class="login_page">
+    <h2>ВХОД В ПРОФИЛЬ</h2>
+    <form class="form" @submit.prevent ="login">
+      <label for="" class="form_label">Email</label>
+      <input  v-model="email" type="email" class="form_input"  />
+      <label for="" class="form_label">Пароль</label>
+      <input v-model="password" type="password" class="form_input" />
+      <button class="eco-button"  type="submit">Войти</button>
     </form>
   </div>
 </template>
@@ -46,16 +46,14 @@ export default {
           let users = res.data
           let user = users.find(user => user.email === this.email)
           window.localStorage.setItem('userId', user.id)
+          console.log(window.localStorage.getItem('userId'))
           if (window.localStorage.getItem('error')) {
             window.location.href = '/'
             return
           }
           console.log(user.role.title)
-          if (user.role.title === 'Пользователь' ) {
-            console.log(user.role.title)
-            window.location.href = 'habits'
-            return
-          }
+          window.location.href = 'habits'
+      
         })
         .catch((err) => {
           console.log(err)
@@ -64,3 +62,39 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.login_page{
+  margin: auto;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  padding-top: 100px;
+}
+.form{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid grey;
+  padding: 20px;
+  border-radius: 25px;
+  min-width: 300px;
+
+}
+.form .eco-button{
+  margin: auto;
+}
+.form_input{
+  height: 30px;
+  margin-bottom: 10px;
+  font-family: inherit;
+}
+.form_label{
+  font-size: 14px;
+  color: grey;
+}
+
+</style>

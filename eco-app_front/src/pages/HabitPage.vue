@@ -17,7 +17,16 @@
             </button>
           </li>
           <li>
-            <button class="eco-button">Пройти анкетирование</button>
+            <button v-if="showQuestions = false" @click="showQuestions = true" class="eco-button">Пройти анкетирование</button>
+            <ul v-else >
+              <li v-for="question in plan.form?.questions" :key="question.id">
+                <p>{{question.title}}</p>
+                <input @input="questionUrl[question.id]=question.url" v-model=answers[question.id] type="text">
+              </li>
+              <li>
+                <button @click="sendAnswers(plan.form)" class="eco-button">Завершить план</button>
+              </li>
+            </ul>
           </li>
         </ul>
       </div>
@@ -78,6 +87,7 @@ export default {
           .catch((err) => {
             console.log(err)
           }) 
+        
       })
 
     },
@@ -86,7 +96,12 @@ export default {
         user: user,
         plans: plans,
         showModal: false,
-        achievementNotify: null
+        achievementNotify: null,
+        showQuestions: false,
+        answers: {},
+        questionUrl: {}
+
+        
       }
     },
     methods: {
@@ -150,9 +165,24 @@ export default {
               'background': 'grey'
             }
           }
+        },
+
+        async sendAnswers(formQuestions){
+          await formQuestions.questions.map( question => 
+            axiosInstance
+              .post('/answers/', {
+                question: question.url,
+                answer: this.answers[question.id],
+                user: this.user.url
+              })
+              .then(res => {
+                console.log(res.data)
+              })
+              .catch((err) => {
+                console.log(err)
+              }) 
+          ) 
         }
-
-
     }
 }
 </script>

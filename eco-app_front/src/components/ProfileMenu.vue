@@ -5,6 +5,7 @@
           <img src="/profile_image.svg" alt="картинка" class="profile_picture">
           <!-- <p class="profile_name">{{ user.username }}</p> -->
           <p class="profile_name">{{user.username}}</p>
+          <router-link class="menu_link" to="/profile">ПРОФИЛЬ</router-link>
         </li>
         <li class="menu_item" v-for="item in topMenu" :key="item.id">
           <router-link class="menu_link" :to=item.link :style="getStyle(item.link)">{{item.title}}</router-link>
@@ -14,9 +15,9 @@
         <li class="menu_item" v-for="item in bottomMenu" :key="item.id">
           <router-link class="menu_link" :to=item.link :style="getStyle(item.link)">{{item.title}}</router-link>
         </li>
-        <!-- <li class="menu_item" v-if="user.role.title='Организация'">
-          <router-link class="menu_link" to="/events" >Мероприятия</router-link>
-        </li> -->
+        <li class="menu_item" v-if="user.role?.title=='Организация'">
+          <router-link class="menu_link" to="/event" >МЕРОПРИЯТИЯ</router-link>
+        </li>
       </ul>
     </nav>
 </template>

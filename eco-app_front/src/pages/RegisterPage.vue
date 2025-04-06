@@ -1,17 +1,21 @@
 <template>
-  <div>
-    <h2>Регистрация</h2>
-    <form @submit.prevent="register">
-      <p class="role_label">Выберите тип Пользователя</p>
-      <label><input type="radio" class="role_radio" v-model="role" :value="1" required>Пользователь</label>
-      <label><input type="radio" class="role_radio" v-model="role" :value="2" required>Организация</label>
-      <label for="" class="username_label">Имя</label>
-      <input v-model="username" type="text" class="username">
-      <label for="" class="email_label">Email</label>
-      <input  v-model="email" type="email"  />
-      <label for="" class="password_label">Пароль</label>
-      <input v-model="password" type="password" />
-      <button  type="submit">Зарегистрироваться</button>
+  <div class="register_page">
+    <h2>РЕГИСТРАЦИЯ</h2>
+    <form class="form" @submit.prevent="register">
+      <p class="form_label">Выберите тип Пользователя</p>
+      <fieldset class="radio_group">
+        <label class="group_label"><input type="radio" class="role_radio" v-model="role" :value="1" required>Пользователь</label>
+        <label class="group_label"><input type="radio" class="role_radio" v-model="role" :value="2" required>Организация</label>
+      </fieldset>
+      <label for="" class="form_label">Имя</label>
+      <input v-model="username" type="text" class="form_input">
+      <label for="" class="form_label">Email</label>
+      <input  v-model="email" type="email" class="form_input" />
+      <label for="" class="form_label">Пароль</label>
+      <input v-model="password" type="password" class="form_input" />
+      <button class="eco-button" type="submit">Зарегистрироваться</button>
+      <p>Есть аккаунт?</p>
+      <router-link to="/login" class="eco-button">Войти в профиль</router-link>
     </form>
   </div>
 </template>
@@ -96,12 +100,54 @@ export default {
         .catch((err) => {
           console.log(err)
         })
-        .finally(() => {
-
-        })
        
     }
   }
 };
 </script>
+
+<style scoped>
+.register_page{
+  margin: auto;
+  max-width: 1200px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+.form{
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid grey;
+  padding: 20px;
+  border-radius: 25px;
+}
+.form .eco-button{
+  margin: auto;
+}
+.form_input{
+  height: 30px;
+  margin-bottom: 10px;
+  font-family: inherit;
+}
+.radio_group{
+  border: none;
+  display: flex;
+  gap: 30px;
+}
+.group_label{
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: flex-start;
+}
+.form_label{
+  font-size: 14px;
+  color: grey;
+}
+
+</style>
 

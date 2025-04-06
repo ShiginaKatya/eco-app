@@ -5,6 +5,9 @@ import LoginPage from '../pages/LoginPage.vue'
 import HabitPage from '../pages/HabitPage.vue'
 import ChallengePage from '../pages/ChallengePage.vue'
 import ProgressPage from '../pages/ProgressPage.vue'
+import AdvicePage from '../pages/AdvicePage.vue'
+import ProfilePage from '../pages/ProfilePage.vue'
+import EventPage from '../pages/EventPage.vue'
 
 
 const router = createRouter({
@@ -16,6 +19,9 @@ const router = createRouter({
       { path: '/habits', component: HabitPage },
       { path: '/challenges', component: ChallengePage },
       { path: '/statistic', component: ProgressPage},
+      { path: '/advices', component: AdvicePage},
+      { path: '/profile', component: ProfilePage},
+      { path: '/event', component: EventPage}
     ]
     })
 
