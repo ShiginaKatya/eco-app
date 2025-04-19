@@ -9,6 +9,11 @@ from rest_framework import status
 import random
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth import logout
+from rest_framework.decorators import api_view
+from rest_framework.decorators import authentication_classes
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.db.models import Q
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()
@@ -45,8 +50,8 @@ class UserPlanViewSet(viewsets.ModelViewSet):
     queryset = UserPlan.objects.all()
     serializer_class = UserPlanSerializer
 
-    # def get_queryset(self):
-    #     return UserPlan.objects.filter(user=self.request.user)
+    def get_queryset(self):
+        return UserPlan.objects.filter(user=self.request.user, is_done=False)
 
     def perform_create(self, serializer):
         forms = Form.objects.all()
@@ -128,7 +133,7 @@ class UserChallengeViewSet(viewsets.ModelViewSet):
     
     @action(detail=False)
     def latest(self, request):
-        challenges = UserChallenge.objects.filter(user=self.request.user).order_by("-id")[0:2]
+        challenges = UserChallenge.objects.filter(user=self.request.user, status=False).order_by("-id")[0:2]
         serializer = UserChallengeSerializer(challenges, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -174,6 +179,36 @@ class AdviceViewSet(viewsets.ModelViewSet):
     queryset = Advice.objects.all()
     serializer_class = AdviceSerializer
 
+    @action(detail=False)
+    def personal(self, request):
+        user_plans = UserPlan.objects.filter(user=self.request.user)
+        habits_category = []
+        for plan in user_plans:
+            habits = UserHabit.objects.filter(plan=plan)
+            for habit in habits:
+                habit_category = habit.habit.category.title
+                habits_category.append(habit_category)
+        user_challenges = UserChallenge.objects.filter(user = self.request.user)
+        challenges_category = []
+        for challenge in user_challenges:
+            challenge_category = challenge.challenge.category.title
+            challenges_category.append(challenge_category)
+        user_categories = habits_category + challenges_category
+        categories = Category.objects.all()
+        use_categories = {}
+        for category in categories:
+            use_categories[category] = user_categories.count(category.title)
+        use_categories = sorted(use_categories.items(), key=lambda item: item[1])[:2]
+        personal_advices = Advice.objects.filter(Q(category = use_categories[0][0]) | Q(category = use_categories[1][0]))
+        random_advices = personal_advices.order_by('?')[:3]
+        personal_serializer = AdviceSerializer(random_advices, many=True, context={'request': request})
+        print(random_advices)
+        return Response(personal_serializer.data)
+
+    
+
+        
+
 class GuideViewSet(viewsets.ModelViewSet):
     queryset = Guide.objects.all()
     serializer_class = GuideSerializer
@@ -218,5 +253,15 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
+    def get_queryset(self):
+        return Event.objects.filter(user=self.request.user)
+
+@authentication_classes([JWTAuthentication])
+@api_view(['POST'])
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        return Response({'message': 'Success'})
 
     

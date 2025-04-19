@@ -1,6 +1,6 @@
 <template>
   <div class="register_page">
-    <h2>РЕГИСТРАЦИЯ</h2>
+    <h2>Регистрация</h2>
     <form class="form" @submit.prevent="register">
       <p class="form_label">Выберите тип Пользователя</p>
       <fieldset class="radio_group">
@@ -123,13 +123,14 @@ export default {
   gap: 5px;
   border: 1px solid grey;
   padding: 20px;
-  border-radius: 25px;
+  border-radius: 8px;
 }
 .form .eco-button{
   margin: auto;
 }
 .form_input{
   height: 30px;
+  padding: 10px;
   margin-bottom: 10px;
   font-family: inherit;
 }

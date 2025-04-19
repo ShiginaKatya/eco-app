@@ -1,21 +1,39 @@
 <template>
       <div class="modal">
         <div class="modal_title">
-          <p class="title">Добавить новый план</p>
+          <p class="title">Создать план по привычкам</p>
           <button  class="close" @click="closeModal"></button>
         </div>
         <form class="modal_form" >
-            <input class="modal_input" v-model="goal" placeholder="Цель" type="text"/>
-            <multiselect class="modal_input" id="multiselect" v-model="value" :options="habits" :multiple="true" :close-on-select="false" :clear-on-select="false"
-                 :preserve-search="true" placeholder="Выберите привычки" label="title" track-by="title" :preselect-first="true">
-                <template #selection="{ values, isOpen }">
-                    <span class="multiselect__single" v-if="values.length" v-show="!isOpen">
-                        {{ values.length }} options selected
-                    </span>
-                </template>
+            <label class="modal_text" for="goal">Цель</label>
+            <input class="modal_input" v-model="goal"  type="text"/>
+            <label class="modal_text" for="multiselect">Выберите привычки</label>
+            <multiselect
+              class="modal_input-multi"
+              id="multiselect"
+              v-model="value"
+              :options="habits"
+              :multiple="true"
+              :close-on-select="false"
+              :clear-on-select="false"
+              :preserve-search="true"
+              placeholder=""
+              label="title"
+              track-by="title"
+              :preselect-first="true"
+            >
+            <template #selection="{ values, isOpen }">
+              <span class="multiselect__single" v-if="values.length" v-show="!isOpen">{{ values.length }} options selected</span>
+            </template>
+              <template #option="{ option }">
+                <div class="custom-option">
+                  <div class="option-title">{{ option.title }}</div>
+                  <div class="option-category">{{option.category.title }}</div>
+                </div>
+              </template>
             </multiselect>
-            <p v-for="valu in value" :key="valu.id">{{valu.title}}</p>
-            <button class="eco-button"  @click.prevent="addPlan()" >Добавить</button>
+            <p class="habits" v-for="valu in value" :key="valu.id">{{valu.title}}</p>
+            <button class="eco-button"  @click.prevent="addPlan()" >Сохранить</button>
         </form>
       </div>
 </template>
@@ -92,8 +110,7 @@ export default {
               .catch((err) => {
                 console.log(err)
               })))
-        console.log(111111111111)
-        await this.$emit('close')
+        this.$emit('close')
       },
       
 }}
@@ -106,19 +123,27 @@ export default {
   left: 0;
   top: 0;
   background: white;
-  border: gray 1px solid;
-  border-radius: 25px;
+  border: 1px solid lightgray;
+  border-radius: 8px;
   max-width: 400px;
   height: fit-content;
   margin: auto;
   position: fixed;
+  padding: 12px 16px;
+}
+p, li{
+  font-size: 16px;
 }
 .modal_title{
   display: flex;
   justify-content: space-between;
+  align-self: stretch;
   align-items: center;
-  padding: 10px 15px;
-  border-bottom: gray 1px solid;
+}
+.title{
+  font-size: 16px;
+  font-weight: 500;
+  font-family: Golos Text, sans-serif;
 }
 .close{
   width: 12px;
@@ -131,17 +156,53 @@ export default {
 .modal_form{
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 320px;
+  padding: 10px 0;
   justify-content: center;
-  align-items: center;
-  margin: 10px auto;
+  align-items: left;
 }
 .modal_input{
-  width: 320px;
-  min-height: 40px;
-  border: 1px solid lightgrey;
-  border-radius: 5px;
+  width: 100%;
+  height: 40px;
+  font-size: 16px;
+  font-family: Raleway, sans-serif;
+  border-radius: 4px;
+  border: 1px solid lightgray;
+  padding: 8px;
+}
+.modal_input-multi{
+  color: black;
+  font-size: 14px;
+}
+
+.modal_text{
+  font-size: 12px;
+  color: grey;
+  font-weight: 500;
+  padding-top: 8px ;
+  padding-bottom: 4px;
+}
+.option-title {
+  font-weight: 400;
+  color: black;
+  font-size: 14px;
+}
+.multiselect__element:hover {
+  background-color: lightblue !important;
+}
+.option-category {
+  color: #888; 
+  font-weight: 300;
+  font-size: 14px;
+}
+.eco-button{
+  margin: 10px auto;
+}
+.habits{
+  margin-top: 6px;
+  padding: 4px;
+  border: 1px solid #C5FDC5;
+  border-radius: 4px;
+
 }
 
 </style>

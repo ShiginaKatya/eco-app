@@ -196,10 +196,11 @@ class UserChallengeSerializer(serializers.HyperlinkedModelSerializer):
 class LevelSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Level
-        fields = '__all__'
+        fields = ['id', 'url', 'min_points', 'title', 'description']
 
 class UserStatSerializer(serializers.HyperlinkedModelSerializer):
     all_achievements = UserAchievementSerializer(many=True, read_only=True)
+    next_level = LevelSerializer( read_only=True)
 
     def __init__(self, *args, **kwargs):
         super(UserStatSerializer, self).__init__(*args, **kwargs)
@@ -211,7 +212,7 @@ class UserStatSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = UserStat
-        fields = ['url', 'id', 'user', 'level', 'completed_plans', 'all_achievements', 'points']
+        fields = ['url', 'id', 'user', 'level', 'completed_plans', 'all_achievements', 'points', 'next_level']
 
 class AdviceSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

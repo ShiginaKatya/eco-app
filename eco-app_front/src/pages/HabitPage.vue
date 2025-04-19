@@ -4,24 +4,24 @@
         <ProfileMenu></ProfileMenu>
     </aside>
     <main class="main">
+      <div class="main_header">
+        <h1 class="header_title">Трекер эко-привычек</h1>
+      </div>
       <AddPlanModal v-if="showModal" @close="closeModal"></AddPlanModal>
-      <button class="eco-button" @click="openModal()">Создать план</button>
+      <button class="eco-button create" @click="openModal()">Создать план</button>
       <div class="plan_list">
         <ul class="plan_card" v-for="plan in plans" :key="plan.id">
           <li class="plan_goal"> {{plan.goal}}</li>
           <li class="plan_habit" v-for="habit in plan.habits" :key="habit.id">
             <p class="habit_title">{{habit.habit.title}}</p>
-            <button class="eco-button"  @click="complete(habit.id)" :style="getButtonStyle(habit.status)">
-              <span v-if="habit.status">Выполнено</span>
-              <span v-else >Выполнить</span>
-            </button>
+            <input class="habit_checkbox" v-model=isChecked[habit.id] type="checkbox" :disabled="habit.status" :checked="habit.status" @input="complete(habit.id)"/>
           </li>
           <li>
-            <button v-if="showQuestions = false" @click="showQuestions = true" class="eco-button">Пройти анкетирование</button>
-            <ul v-else >
-              <li v-for="question in plan.form?.questions" :key="question.id">
-                <p>{{question.title}}</p>
-                <input @input="questionUrl[question.id]=question.url" v-model=answers[question.id] type="text">
+            <button @click="showQuestions(plan.url)" v-if="!showList(plan.url)" class="eco-button">Самоанализ</button>
+            <ul class="questions" v-if="showList(plan.url)">
+              <li class="question" v-for="question in plan.form.questions" :key="question.id">
+                <p class="question_title">{{question.title}}</p>
+                <input class="question_input" @input="questionUrl[question.id]=question.url" v-model=answers[question.id] placeholder="Напишите свой ответ" type="text">
               </li>
               <li>
                 <button @click="sendAnswers(plan.form)" class="eco-button">Завершить план</button>
@@ -55,7 +55,7 @@ import axios from 'axios'
 
 const user = computed(() => store.state.user) 
 const plans = computed(() => store.state.plans)
-const achievementNotify = computed(() => store.state.achievement)
+// const achievementNotify = computed(() => store.state.achievement)
 
 export default {
     components: {
@@ -97,23 +97,26 @@ export default {
         plans: plans,
         showModal: false,
         achievementNotify: null,
-        showQuestions: false,
         answers: {},
-        questionUrl: {}
+        questionUrl: {},
+        openPlan: null,
+        isChecked: {}
 
         
       }
     },
     methods: {
         async complete(habitId){
+          console.log(habitId)
           let achievement
           await axiosInstance
             .patch(`userhabits/${habitId}/`, {
               status: 'True'
             })
             .then((res) => {
+              console.log(res.data)
               achievement = res.data.achievement.url
-              console.log(achievement)
+              // console.log(achievement)
             })  
             .catch((err) => {
               console.log(err)
@@ -139,8 +142,7 @@ export default {
             .catch((err) => {
               console.log(err)
             })
-          style.disabled = true
-
+          // style.disabled = true
         },
 
         openModal(){
@@ -158,15 +160,6 @@ export default {
             console.log(err)
           }) 
         },
-
-        getButtonStyle(habitStatus){
-          if (habitStatus){
-            return {
-              'background': 'grey'
-            }
-          }
-        },
-
         async sendAnswers(formQuestions){
           await formQuestions.questions.map( question => 
             axiosInstance
@@ -181,35 +174,38 @@ export default {
               .catch((err) => {
                 console.log(err)
               }) 
-          ) 
+          )
+          
+        },
+        showQuestions(planId){
+          this.openPlan = this.openPlan === planId ? null : planId;
+        },
+        showList(planId){
+          // console.log(planId, this.openPlan)
+          return this.openPlan === planId;
         }
+
+
     }
 }
 </script>
 
 <style scoped>
-.page{
-  display: flex;
-}
-.sidebar{
-  width: fit-content;
-}
-.main{
-  min-width: 320px;
+.create{
   margin: 10px;
-  max-width: 100vw;
 }
 .plan_card{
   list-style-type: none;
   min-width: 300px;
   max-width: 400px;
   height: fit-content;
-  border: 1px solid grey;
-  border-radius: 25px;
+  border: 1px solid lightgrey;
+  border-radius: 8px;
+  background-color: white;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 20px;
+  padding: 16px;
 }
 .plan_list{
   display: grid;
@@ -219,19 +215,54 @@ export default {
 }
 .plan_habit{
   display: flex;
-  gap: 10px;
+  gap: 20px;
   align-items: center;
   justify-content: space-between;
+  background-color: #F5F5DC;
+  padding: 8px;
+  border-radius: 8px;
+  /* font-weight: 500; */
+  font-size: 16px;
 }
 .plan_goal{
-  text-align: center;
+  text-align: left;
   font-weight: 500;
-  border-bottom: 1px solid grey;
-
+  font-size: 16px;
+  font-family: Golos Text, sans-serif;
 }
-.eco-button:hover{
+.habit_checkbox{
+  border: 1px solid lightgray;
+  width: 16px;
+  height: 16px;
+}
+.habit_checkbox:disabled{
   background-color: white;
+  color: green;
 }
+
+.question_title{
+  font-size: 14px;
+  color: gray;
+  width: 300px;
+  margin-bottom: 8px;
+}
+.question_input{
+  width: 300px;
+  height: 30px;
+  font-family: Raleway, sans-serif;
+  border-radius: 4px;
+  border: 1px solid lightgray;
+  padding: 8px;
+}
+.questions{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+  gap: 10px;
+}
+
+
 
 .modal{
   right: 0;
@@ -239,8 +270,8 @@ export default {
   left: 0;
   top: 0;
   background: white;
-  border: gray 1px solid;
-  border-radius: 25px;
+  border: lightgray 1px solid;
+  border-radius: 8px;
   max-width: 300px;
   height: fit-content;
   margin: auto;
@@ -251,7 +282,11 @@ export default {
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  border-bottom: gray 1px solid;
+}
+.body_description{
+  text-align: center;
+  color: gray;
+  font-size: 14px;
 }
 .close{
   width: 12px;
@@ -275,6 +310,7 @@ export default {
 }
 .body_title{
   font-weight: 500;
+  font-family: Golos Text, sans-serif;
 }
 
 </style>

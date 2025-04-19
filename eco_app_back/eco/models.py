@@ -89,7 +89,7 @@ class UserAnswer(models.Model):
     question = models.ForeignKey(verbose_name='Вопрос', to=FormQuestion, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = 'Ответ полььзователя'
+        verbose_name = 'Ответ пользователя'
         verbose_name_plural = 'Ответы пользователей'
 
     def __str__(self):
@@ -100,6 +100,7 @@ class UserPlan(models.Model):
     goal = models.CharField(verbose_name='Цель', max_length=255)
     form = models.ForeignKey(verbose_name='Анкета', to=Form, on_delete=models.PROTECT, null=True)
     status = models.BooleanField(verbose_name='Статус выполнения', default=False)
+    is_done = models.BooleanField(verbose_name='Статус завершения', default=False)
 
     class Meta:
         verbose_name = 'План'
@@ -172,6 +173,10 @@ class Challenge(models.Model):
 
     def __str__(self):
         return self.title
+    
+    # @property
+    # def format_date(self):
+    #     return self.start_date.stfftime('%d.%m.%Y')
 
 class UserChallenge(models.Model):
     challenge = models.ForeignKey(verbose_name='Челлендж', to=Challenge, on_delete=models.PROTECT)
@@ -208,6 +213,8 @@ class Level(models.Model):
 
     def __str__(self):
         return self.title
+    
+    
 
 class UserStat(models.Model):
     user = models.OneToOneField(verbose_name='Пользователь', to=User, on_delete=models.PROTECT)
@@ -223,11 +230,15 @@ class UserStat(models.Model):
     
     @property
     def all_achievements(self):
-        return UserAchievement.objects.filter(user=self.user)
+       return UserAchievement.objects.filter(user=self.user)
     
     @property
     def completed_plans(self):
         return UserPlan.objects.filter(user=self.user, status=True).count()
+    
+    @property
+    def next_level(self):
+        return Level.objects.filter(id=self.level.id + 1).first()
     
 
 

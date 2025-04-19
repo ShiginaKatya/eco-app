@@ -5,28 +5,40 @@
     </aside>
     <main class="main">
       <div class="main_header">
-        <h1 class="header_title">ЧЕЛЛЕНДЖИ</h1>
+        <h1 class="header_title">Челленджи</h1>
       </div>
       <div class="main_sections">
         <section class="main_challenges">
-          <p class="challenges_title">Доступные челленджи</p>
+          <!-- <p class="challenges_title">Доступные челленджи</p> -->
           <ul class="challenges_list">
             <li class="challenges_item" v-for="challenge in challenges" :key="challenge.id">
               <p class="challenge_title">{{challenge.title}}</p>
               <!-- <p v-for="task in challenge.tasks" :key="task.id">{{task.title}}</p> -->
-              <p>{{challenge.category.title}}</p>
-              <button  class="eco-button" @click="addChallenge(challenge.url)" >{{challengeStatus(challenge)}}</button>
-              <button class="eco-button">Подробнее</button>
+              <p class="challenge_category">{{challenge.category.title}}</p>
+              <button @click="showChallenge(challenge.url)" class="eco-button">Подробнее</button>
+              <DetailChallenge v-if="challengeUrl === challenge.url" :challenge="challenge" :user="user" @close="closeModal"></DetailChallenge>
             </li>
           </ul> 
         </section>
         <section class="main_userchallenges">
+          <p class="userchallenges_title">Мои челленджи</p>
           <ul class="userchallenges_list">
             <li class="userchallenges_item" v-for="challenge in userchallenges" :key="challenge.id">
-              <p class="userchallenge_title">{{challenge.challenge.title}}</p>
-              <p class="active_task" v-if="activeTask(challenge)">{{activeTask(challenge).task.title}}</p>
-              <button class="eco-button" @click="completeTask(activeTask(challenge).id)">Отметить выполнения</button>
-              <p>Процент выполнения: {{challengeProcent(challenge.tasks)}} %</p>
+              <div class="userchallenge_title-group">
+                <p class="userchallenge_title">{{challenge.challenge.title}}</p>
+                <p class="userchallenge_category">{{challenge.challenge.category.title}}</p>
+              </div>
+              <p class="userchallenge_text">текущее задание</p>
+              <div class="userchallenge_task">
+                <label class="active_task" v-if="activeTask(challenge)">{{activeTask(challenge).task.title}}</label>
+                <input v-model="isChecked" type="checkbox" @change="completeTask(activeTask(challenge).id)"/>
+              </div>
+              <!-- <button class="eco-button" @click="completeTask(activeTask(challenge).id)">Отметить выполнение</button> -->
+              <div class="userchallenge_progress">
+                <p class="progress_count">выполнено: {{ challengeProcent(challenge.tasks) }}</p>
+                <progress class="progress_bar" :max="100" :value="progressValue"></progress>
+              </div>
+              <p class="userchallenge_text">{{ challenge.challenge.description }}</p>
             </li>
           </ul>
         </section> 
@@ -37,6 +49,7 @@
 
 <script>
 import ProfileMenu from '../components/ProfileMenu.vue'
+import DetailChallenge from '../components/DetailChallenge.vue';
 import {store} from '../store.js'
 import { onMounted, computed } from 'vue';
 import axiosInstance from '../http.js'
@@ -50,6 +63,7 @@ const userchallenges = computed(() => store.state.userchallenges)
 export default {
     components: {
       ProfileMenu,
+      DetailChallenge
     },
     setup() {
       onMounted(async () => {
@@ -81,7 +95,12 @@ export default {
         userchallenge: userchallenge,
         tasks: [],
         userchallenges: userchallenges,
-        chooseStatus: ''
+        chooseStatus: '',
+        challengeUrl: null,
+        isChecked: false,
+        progressValue: 0,
+        showModal: false
+
     
       }
     },
@@ -166,6 +185,7 @@ export default {
           .catch((err) => {
             console.log(err)
           }) 
+        this.isChecked=false
       }, 
       activeTask(challenge){
         if (challenge){
@@ -187,66 +207,159 @@ export default {
         }
       },
       challengeProcent(tasks){
-        let t = 0
-        let f = 0
+        let tasksTrue = 0
         tasks.map(task =>{
           if (task.status){
-            t = t + 1
-            console.log(1)
-          }
-          f = f + 1
-          
+            tasksTrue = tasksTrue + 1
+          } 
         })
-        return (t/f*100).toFixed()
-      }
-      
-       
+        this.progressValue = ((tasksTrue/tasks.length)*100).toFixed()
+        return `${tasksTrue}/${tasks.length}`
+        
+      },
+      showChallenge(challenge){
+        this.challengeUrl = challenge
+      },
+      closeModal() {
+          this.challengeUrl = null
+          axiosInstance
+          .get('/userchallenges')
+          .then(res => {
+            console.log(res.data)
+            store.commit('setUserChallenges', res.data)
+          })
+          .catch((err) => {
+            console.log(err)
+          }) 
+        },  
     }
 }
 </script>
 
 <style scoped>
-.page{
-  display: flex;
-}
-.sidebar{
-  width: fit-content;
-}
-.main{
-  min-width: 320px;
-  width: calc(100vw - 300px);
-}
-.main_header{
-  border-bottom: 1px solid grey;
-  padding: 20px;
-}
-.header_title{
-  font-family: Golos Text, sans-serif;
-  font-weight: 500;
-  font-size: 32px;
-  text-align: center;
-}
 .main_sections{
   display: grid;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: 2fr 1fr;
+  flex: 1
 }
 .main_challenges{
   margin: 10px;
 }
 .challenges_list{
   display: grid;
-  grid-template-columns: repeat(auto-fit, 200px);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 .challenges_item{
-  max-width: 200px;
+  max-width: 350px;
   max-height: 200px;
   padding: 20px;
-  border-radius: 25px;
-  border: 1px solid grey;
+  border-radius: 8px;
+  background-color: white;
+  border: 1px solid lightgray;
+}
+.challenge_title{
+  font-size: 16px;
+  font-family: Golos Text, sans-serif;
+  color: black;
+  font-weight: 500;
+}
+.challenge_category{
+  font-size: 14px;
+  color: gray;
+  margin-bottom: 20px;
+}
+.main_userchallenges{
+  border: 1px solid lightgray;
+  background-color: white;
+  border-radius: 8px;
+  margin: 10px;
+  padding: 16px;
+}
+.userchallenges_title{
+  font-family: Raleway, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: gray;
+  margin-bottom: 16px ;
+}
+.userchallenges_list{
   display: flex;
   flex-direction: column;
   gap: 10px;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
 }
+.userchallenges_item{
+  border-radius: 8px;
+  background-color: white;
+  border: 1px solid lightgray;
+}
+.userchallenge_title{
+  /* padding: 16px; */
+  font-size: 16px;
+  font-weight: 500;
+  font-family: Golos Text, sans-serif;
+  /* border-bottom: 1px solid lightgray; */
+}
+.userchallenge_title-group{
+  border-bottom: 1px solid lightgray;
+  padding: 16px;
+}
+.userchallenge_category{
+  font-size: 14px;
+  color: #2E8B57;
+  text-transform: lowercase;
+  text-align: right;
+}
+.userchallenge_text{
+  padding: 8px 16px 2px;
+  font-size: 14px;
+  color: gray;
+}
+.userchallenge_task{
+  margin: 8px;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 8px;
+  background-color: #C5FDC5;
+  display: grid;
+  grid-template-columns: auto 20px;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+input[type="checkbox"] {
+  border: 1px solid lightgray;
+  border-radius: 50%;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 15px; 
+  height: 15px;
+  display: inline-block;
+  background: white;
+}
+input[type="checkbox"]:checked {
+  background-image: url("/check.svg");
+  background-position: center;
+}
+.userchallenges_item .eco-button{
+  margin: 10px auto;
+}
+.progress_bar{
+  accent-color: #2E8B57;
+  margin: 0 auto;
+  width: auto;
+  display: block;
+}
+.userchallenge_progress{
+  padding: 8px 16px;
+
+}
+.progress_count{
+  text-align: right;
+  font-size: 14px;
+}
+
 </style>

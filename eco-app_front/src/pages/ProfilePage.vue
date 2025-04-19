@@ -8,7 +8,7 @@
         <img src="/profile_image.svg" alt="avatar" class="profile_image">
         <ul class="header_info">
           <li class="info_item">{{ user.username }}</li>
-          <li class="info_item">{{ userStats[0]?.level.title }}</li>
+          <li class="info_item-l">{{ userStats[0]?.level.title }}</li>
         </ul>
         <button class="eco-button">Пройти анкетирование</button>
       </section>
@@ -31,7 +31,7 @@
         <ul class="favorites_list">
           <li v-for="favorite in favorites" :key="favorite.id" class="list_latest">
             <p class="latest_title">{{ favorite.advice.title }}</p>
-            <p class="latest_type">{{ favorite.favorite_type }}</p>
+            <p class="latest_type">{{ favorite.advice.description }}</p>
           </li>
         </ul>
       </section>
@@ -113,17 +113,20 @@ export default {
     },
     methods: {
       challengeProcent(tasks){
-        let t = 0
-        let f = 0
-        tasks.map(task =>{
-          if (task.status){
-            t = t + 1
-            console.log(1)
-          }
-          f = f + 1
-          
-        })
-        return (t/f*100).toFixed()
+        if (tasks){
+          let t = 0
+          let f = 0
+          tasks.map(task =>{
+            if (task.status){
+              t = t + 1
+            }
+            f = f + 1
+          })
+          return (t/f*100).toFixed()
+        }
+        else{
+          return null
+        }
       }
        
     }
@@ -131,7 +134,7 @@ export default {
 </script>
 
 <style scoped>
-.page{
+/* .page{
   display: flex;
 }
 .sidebar{
@@ -140,7 +143,7 @@ export default {
 .main{
   min-width: 320px;
   width: calc(100vw - 300px);
-}
+} */
 .main_header{
   display: flex;
   gap: 20px;
@@ -150,7 +153,7 @@ export default {
   justify-items: center;
 }
 .profile_image{
-  width: 100px;
+  width: 80px;
   border: 1px solid gray;
   padding: 50px;
   border-radius: 50%;
@@ -158,9 +161,9 @@ export default {
 }
 .main_actions{
   display: flex;
-  gap: 50px;
+  gap: 20px;
   max-width: 1000px;
-  padding: 20px;
+  padding: 10px;
 }
 .actions_challenges{
   display: flex;
@@ -172,9 +175,9 @@ export default {
   min-width: 300px;
   max-width: 500px;
   border: 1px solid gray;
-  border-radius: 20px;
+  border-radius: 8px;
   height: 300px;
-  padding: 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -183,8 +186,8 @@ export default {
   min-width: 300px;
   max-width: 500px;
   border: 1px solid gray;
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 16px;
   display: flex;
   gap: 10px;
   flex-direction: column;
@@ -192,13 +195,13 @@ export default {
 
 }
 .latest_title{
-  font-weight: 400;
+  font-weight: 500;
   width: 200px;
-  font-size: 18px;
+  font-size: 16px;
   font-family: 'Golos Text', sans-serif;
 }
 .latest_type{
-  font-size: 16px;
+  font-size: 14px;
   color: grey;
 }
 .main_favorites{
@@ -213,8 +216,17 @@ export default {
   width: 300px;
   padding: 10px;
   border: 1px solid gray;
-  border-radius: 20px;
+  border-radius: 8px;
 
+}
+.info_item{
+  font-size: 16px;
+  font-weight: 500;
+  font-family: Golos Text, sans-serif;
+}
+.info_item-l{
+  font-size: 14px;
+  color: gray
 }
 
 </style>

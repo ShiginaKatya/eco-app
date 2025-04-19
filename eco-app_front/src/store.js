@@ -18,6 +18,7 @@ export const store = createStore({
       advices: [],
       events: [],
       favorites: [],
+      personal_advices: []
 
     }
   },
@@ -69,6 +70,9 @@ export const store = createStore({
     },
     setFavorites(state, favorites) {
       state.favorites = favorites
+    },
+    setPersonalAdvices(state, personal_advices) {
+      state.personal_advices = personal_advices
     },
 
 }

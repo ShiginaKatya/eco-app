@@ -4,11 +4,30 @@
       <ProfileMenu></ProfileMenu>
     </aside>
     <main class="main">
-      <ul>
-        <li v-for="advice in advices" :key="advice.id">
-          <p>{{advice.title}}</p>
-          <p>{{advice.description}}</p>
-          <button @click="addFavorite(advice.url)">Избранное</button>
+      <div class="main_header">
+        <h1 class="header_title">Cоветы</h1>
+      </div>
+      <p class="advice_title personal">Персональные советы</p>
+      <ul class="advice_list  personal">
+        <li class="advice" v-for="advice in personal_advices" :key="advice?.id">
+          <button @click="addFavorite(advice.url)" class="advice_button"></button>
+          <img :src="advice.icon" alt="" class="advice_picture">
+          <div class="advice_text">
+            <p class="advice_title">{{advice.title}}</p>
+            <p class="advice_category">{{advice.category.title}}</p>
+            <p class="advice_description">{{advice.description}}</p>
+          </div>
+        </li>
+      </ul>
+      <ul class="advice_list">
+        <li class="advice" v-for="advice in advices" :key="advice.id">
+          <button @click="addFavorite(advice.url)" class="advice_button"></button>
+          <img :src="advice.icon" alt="" class="advice_picture">
+          <div class="advice_text">
+            <p class="advice_title">{{advice.title}}</p>
+            <p class="advice_category">{{advice.category.title}}</p>
+            <p class="advice_description">{{advice.description}}</p>
+          </div>
         </li>
       </ul>
     </main>
@@ -24,6 +43,7 @@ import axios from 'axios'
 
 const user = computed(() => store.state.user) 
 const advices = computed(() => store.state.advices)
+const personal_advices = computed(() => store.state.personal_advices)
 
 
 export default {
@@ -31,7 +51,7 @@ export default {
       ProfileMenu,
     },
     setup() {
-       onMounted(async () => {
+      onMounted(async () => {
         await axiosInstance
           .get('/advices')
           .then(res => {
@@ -41,12 +61,22 @@ export default {
           .catch((err) => {
             console.log(err)
           })
+        await axiosInstance
+          .get('/advices/personal')
+          .then(res => {
+            console.log(res.data)
+            store.commit('setPersonalAdvices', res.data)
+          })
+          .catch((err) => {
+            console.log(err)
+          })
        })
     },
     data() {
       return {
         user: user,
-        advices: advices
+        advices: advices,
+        personal_advices: personal_advices
       }
     },
     computed:{
@@ -66,21 +96,64 @@ export default {
           .catch((err) => {
             console.log(err)
           })
+        
         }
     }
 }
 </script>
 
 <style scoped>
-.page{
-  display: flex;
+.advice_title{
+  font-weight: 500;
+  font-family: Golos Text, sans-serif;
+  font-size: 16px;
 }
-.sidebar{
-  width: fit-content;
+.advice_description{
+  font-size: 14px;
+  color: gray;
 }
-.main{
-  min-width: 320px;
-  width: calc(100vw - 300px);
+.advice_category{
+  font-size: 14px;
+  color: #2E8B57;
 }
+.advice_picture{
+  width: 270px;
+  height: auto;
 
+}
+.advice{
+  width: 300px;
+  padding: 16px;
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.advice_button{
+  width: 24px;
+  height: 24px ;
+  border: none;
+  background: transparent;
+  background-image: url('favorite_hover.svg');
+  background-position: center;
+  background-size: cover;
+  align-self: flex-end;
+}
+.advice_button:disabled{
+  background-image: url('favorite.svg');
+}
+.advice_list{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+.personal {
+  padding: 10px;
+}
+.personal .advice{
+  border: 1px solid #2E8B57;
+}
 </style>

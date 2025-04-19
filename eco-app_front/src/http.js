@@ -26,13 +26,13 @@ axiosInstance.interceptors.response.use(
     if (error.response.status === 401 && error.config && !error.config._isRetry) {
       originalRequest._isRetry = true
       try {
-        const response = await axios.post(`${API_URL}/token/`, false, {
-          withCredentials: true
-        })
+        const response = await axios.post(`${API_URL}/token/refresh/`, { refresh: localStorage.getItem('refresh_token') })
         localStorage.setItem('access_token', response.data.access)
         return axiosInstance.request(originalRequest)
       } catch (e) {
-        console.log('ошибка')
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login'
       }
     }
     throw error

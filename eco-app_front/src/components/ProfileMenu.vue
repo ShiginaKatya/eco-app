@@ -2,74 +2,124 @@
     <nav class="sidebar_menu">
       <ul class="menu_list">
         <li class="menu_profile">
-          <img src="/profile_image.svg" alt="картинка" class="profile_picture">
-          <!-- <p class="profile_name">{{ user.username }}</p> -->
-          <p class="profile_name">{{user.username}}</p>
-          <router-link class="menu_link" to="/profile">ПРОФИЛЬ</router-link>
+          <router-link class="menu_link" to="/profile">
+            <img src="/profile_image.svg" alt="картинка" class="profile_picture">
+            <div class="profile_group">
+              <p class="profile_name">{{user.username}}</p>
+              <p class="profile_email">{{user.email}}</p>
+            </div> 
+          </router-link>
         </li>
+        <li class="menu_group">действия</li>
         <li class="menu_item" v-for="item in topMenu" :key="item.id">
           <router-link class="menu_link" :to=item.link :style="getStyle(item.link)">{{item.title}}</router-link>
         </li>
       </ul>
       <ul class="menu_list">
+        <li class="menu_group">информация</li>
         <li class="menu_item" v-for="item in bottomMenu" :key="item.id">
           <router-link class="menu_link" :to=item.link :style="getStyle(item.link)">{{item.title}}</router-link>
         </li>
         <li class="menu_item" v-if="user.role?.title=='Организация'">
-          <router-link class="menu_link" to="/event" >МЕРОПРИЯТИЯ</router-link>
+          <router-link class="menu_link" to="/event">Мероприятия</router-link>
+        </li>
+        <li class="menu_logout">
+          <router-link @click="logout" class="menu_link logout" to="/login">
+            <p class="logout_title">Выйти</p>
+            <img src="/logout.svg" alt="картинка" class="logout_picture">
+          </router-link>
         </li>
       </ul>
+
     </nav>
 </template>
 
 <script>
 import { store } from '../store.js'
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
+import axiosInstance from '../http.js'
 
 const user = computed(() => store.state.user)
 
 
 export default {
+  setup(){
+    onMounted(async () => {
+        if (Object.keys(user.value).length === 0) {
+          console.log(window.localStorage.getItem('userId'))
+          await axiosInstance
+            .get(`users/${window.localStorage.getItem('userId')}/`)
+            .then((res) => {
+              console.log(res.data)
+              store.commit('setUser', res.data)
+            })
+            .catch((err) => {
+              console.log(err)
+        
+            })
+              
+        }})
+
+  },
   data() {
     return {
       user: user,
       topMenu: [
-        { id: 1, title: 'ПРОГРЕСС', link: '/statistic'},
-        { id: 2, title: 'ТРЕКЕР ЭКО-ПРИВЫЧЕК', link: '/habits'},
-        { id: 3, title: 'ЧЕЛЛЕНДЖИ', link: '/challenges'},
+        { id: 1, title: 'Прогресс', link: '/statistic'},
+        { id: 2, title: 'Трекер эко-привычек', link: '/habits'},
+        { id: 3, title: 'Челленджи', link: '/challenges'},
       ],
       bottomMenu: [
-        { id: 1, title: 'СОВЕТЫ', link: '/advices'},
-        { id: 2, title: 'РУКОВОДСТВА', link: '/guides'},
-        { id: 3, title: 'ИЗБРАННОЕ', link: '/favorites'},
+        { id: 1, title: 'Советы', link: '/advices'},
+        { id: 2, title: 'Руководства', link: '/guides'},
+        { id: 3, title: 'Избранное', link: '/favorites'},
       ]
     }
   },
   methods: {
     getStyle(itemLink){
-      
       if (this.$route.path === itemLink) {
         return {
-          'background': '#B8D86B',
-          'border-radius': '25px',
+          'background': '#C5FDC5',
+          'border-radius': '8px',
           'font-weight': '500',
         }
       }
+    },
+    async logout() {
+      await axiosInstance
+        .post('logout/')
+        .then(res => console.log(res))
+        .catch(err => console.log(err))
+      await axiosInstance
+        .post(`token/blacklist/`, {
+          refresh: `${window.localStorage.getItem('refresh_token')}`
+        })
+        .catch(err => console.log(err))
+      store.commit('setIsAuthenticated', false)
+      window.localStorage.removeItem('access_token')
+      window.localStorage.removeItem('refresh_token')
+      window.localStorage.removeItem('userId')
+      window.location.href = 'login'
+    }
     }
   }
 
-}
 </script>
 
 <style scoped>
 
 .sidebar_menu{
+  /* position: fixed; */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  /* top: 0;
+  left: 0; */
   height: 100vh;
-  border-right: 1px solid grey;
-  width: fit-content;
+  width: 260px;
+  border-radius: 10px;
+  border-right: 1px solid lightgray;
 
 }
 .menu_list{
@@ -78,31 +128,61 @@ export default {
   flex-direction: column;
 
 }
-.menu_item, .menu_profile{
-  border-bottom: 1px solid grey;
+.menu_profile{
+  border-bottom: 1px solid lightgray;
   /* padding: 10px 15px; */
 }
+.menu_logout{
+  border-top: 1px solid lightgray;
+}
+.menu_group{
+  font-size: 10px;
+  color: #478A55;
+  text-transform: uppercase;
+  font-family: Golos Text, sans-serif;
+  font-weight: bolder;
+  margin: 5px;
+  
+}
 .menu_link{
-  padding: 10px 15px;
+  margin: 2px 8px;
+  padding: 10px 8px;
   display: block;
   color: black;
+  font-size: 16px;
+  font-family: Golos Text, sans-serif ;
 }
 .menu_link:hover{
-  background-color: #B8D86B;
-  border-radius: 25px;
+  background-color: #C5FDC5;
+  border-radius: 8px;
   color: black;
   font-weight: 500;
 }
-.menu_profile{
-  padding: 20px 15px;
+.menu_profile .menu_link{
+  padding: 10px 15px;
   display: flex;
-  flex-direction: row;
-  justify-content: space-around;
+  gap: 20px;
+  justify-content: flex-starts;
   align-items: center;
 }
 .profile_picture{
-  width: 45px;
+  width: 40px;
   display: block;
+}
+.profile_name{
+  font-size: 18px;
+  font-weight: 500;
+}
+.profile_email{
+  color: gray;
+}
+.logout{
+  display: flex;
+  justify-content: space-between;
+  color: gray;
+}
+.logout_picture{
+  width: 18px;
 }
 
 

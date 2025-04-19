@@ -1,6 +1,6 @@
 <template>
   <div class="login_page">
-    <h2>ВХОД В ПРОФИЛЬ</h2>
+    <h2>Вход в профиль</h2>
     <form class="form" @submit.prevent ="login">
       <label for="" class="form_label">Email</label>
       <input  v-model="email" type="email" class="form_input"  />
@@ -52,7 +52,7 @@ export default {
             return
           }
           console.log(user.role.title)
-          window.location.href = 'habits'
+          window.location.href = 'profile'
       
         })
         .catch((err) => {
@@ -80,7 +80,7 @@ export default {
   gap: 5px;
   border: 1px solid grey;
   padding: 20px;
-  border-radius: 25px;
+  border-radius: 8px;
   min-width: 300px;
 
 }
@@ -90,6 +90,7 @@ export default {
 .form_input{
   height: 30px;
   margin-bottom: 10px;
+  padding: 6px;
   font-family: inherit;
 }
 .form_label{
