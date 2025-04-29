@@ -1,41 +1,41 @@
 <template>
-      <div class="modal">
-        <div class="modal_title">
-          <p class="title">Создать план по привычкам</p>
-          <button  class="close" @click="closeModal"></button>
-        </div>
-        <form class="modal_form" >
-            <label class="modal_text" for="goal">Цель</label>
-            <input class="modal_input" v-model="goal"  type="text"/>
-            <label class="modal_text" for="multiselect">Выберите привычки</label>
-            <multiselect
-              class="modal_input-multi"
-              id="multiselect"
-              v-model="value"
-              :options="habits"
-              :multiple="true"
-              :close-on-select="false"
-              :clear-on-select="false"
-              :preserve-search="true"
-              placeholder=""
-              label="title"
-              track-by="title"
-              :preselect-first="true"
-            >
-            <template #selection="{ values, isOpen }">
-              <span class="multiselect__single" v-if="values.length" v-show="!isOpen">{{ values.length }} options selected</span>
-            </template>
-              <template #option="{ option }">
-                <div class="custom-option">
-                  <div class="option-title">{{ option.title }}</div>
-                  <div class="option-category">{{option.category.title }}</div>
-                </div>
-              </template>
-            </multiselect>
-            <p class="habits" v-for="valu in value" :key="valu.id">{{valu.title}}</p>
-            <button class="eco-button"  @click.prevent="addPlan()" >Сохранить</button>
-        </form>
-      </div>
+  <div class="modal">
+    <div class="modal_title">
+      <p class="title">Создать план по привычкам</p>
+      <button  class="close" @click="closeModal"></button>
+    </div>
+    <form class="modal_form" >
+        <label class="modal_text" for="goal">Цель</label>
+        <input class="modal_input" v-model="goal"  type="text"/>
+        <label class="modal_text" for="multiselect">Выберите привычки</label>
+        <multiselect
+          class="modal_input-multi"
+          id="multiselect"
+          v-model="value"
+          :options="habits"
+          :multiple="true"
+          :close-on-select="false"
+          :clear-on-select="false"
+          :preserve-search="true"
+          placeholder=""
+          label="title"
+          track-by="title"
+          :preselect-first="true"
+        >
+        <template #selection="{ values, isOpen }">
+          <span class="multiselect__single" v-if="values.length" v-show="!isOpen">{{ values.length }} options selected</span>
+        </template>
+          <template #option="{ option }">
+            <div class="custom-option">
+              <div class="option-title">{{ option.title }}</div>
+              <div class="option-category">{{option.category.title }}</div>
+            </div>
+          </template>
+        </multiselect>
+        <p class="habits" v-for="valu in value" :key="valu.id">{{valu.title}}</p>
+        <button class="eco-button"  @click.prevent="addPlan()" >Сохранить</button>
+    </form>
+  </div>
 </template>
 <script>
 import Multiselect from 'vue-multiselect'

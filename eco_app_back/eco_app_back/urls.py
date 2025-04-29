@@ -53,5 +53,6 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/blacklist/', TokenBlacklistView.as_view(), name='token_blacklist'),
     path('api/logout/', logout_view, name='logout'),
+    # path('api/register/', RegisterView.as_view(), name='register'),
     path('api/', include(router.urls)),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -140,6 +140,9 @@ class AchievementSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'id', 'title', 'description', 'icon']
 
 class ChallengeSerializer(serializers.HyperlinkedModelSerializer):
+    start_date = serializers.DateField(format='%d.%m.%Y')
+    finish_date = serializers.DateField(format='%d.%m.%Y')
+
     def __init__(self, *args, **kwargs):
         super(ChallengeSerializer, self).__init__(*args, **kwargs)
         request = self.context.get('request')
@@ -215,9 +218,17 @@ class UserStatSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'id', 'user', 'level', 'completed_plans', 'all_achievements', 'points', 'next_level']
 
 class AdviceSerializer(serializers.HyperlinkedModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super(AdviceSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 1
+
     class Meta:
         model = Advice
-        fields = '__all__'
+        fields = ['id', 'url', 'title', 'description', 'author', 'category', 'icon', 'is_posted']
 
 class GuideSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -238,6 +249,8 @@ class FavoriteSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'id', 'user', 'advice', 'guide', 'favorite_type']
 
 class EventSerializer(serializers.HyperlinkedModelSerializer):
+    event_date = serializers.DateField(format='%d.%m.%Y')
+
     class Meta:
         model = Event
-        fields = '__all__'
+        fields = ['url', 'id', 'user', 'title', 'description', 'event_date', 'status', 'report', 'report_image', 'afisha_image']

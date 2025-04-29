@@ -45,7 +45,7 @@ export default {
   },
   data () {
     return {
-      userchallenge:userchallenge,
+      userchallenge: userchallenge,
       userchallenges: userchallenges,
       userStatus: true
 

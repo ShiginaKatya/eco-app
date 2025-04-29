@@ -14,6 +14,11 @@ from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db.models import Q
+from rest_framework.views import APIView
+import uuid
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()
@@ -22,6 +27,27 @@ class RoleViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+# class RegisterView(APIView):
+#     def post(self, request):
+#         email = request.data.get('email')
+#         password = request.data.get('password')
+#         user = User.objects.create(email=email)
+#         user.set_password(password)
+#         user.email_confirmation_token = uuid.uuid4()
+#         user.save()
+#         confirmation_link = f'http://127.0.0.1:8000/confirm-email/{user.email_confirmation_token}/'
+#         send_mail(
+#             'Подтверждение электронной почты',
+#             f'Пожалуйста, подтвердите вашу регистрацию, перейдя по следующей ссылке: {confirmation_link}',
+#             settings.DEFAULT_FROM_EMAIL,
+#             [email],
+#             fail_silently=False,
+#         )
+
+#         return Response({
+#             'detail': 'Пожалуйста, проверьте свою почту для подтверждения регистрации.'
+#         }, status=status.HTTP_201_CREATED)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -178,6 +204,8 @@ class UserStatViewSet(viewsets.ModelViewSet):
 class AdviceViewSet(viewsets.ModelViewSet):
     queryset = Advice.objects.all()
     serializer_class = AdviceSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['is_posted']
 
     @action(detail=False)
     def personal(self, request):
@@ -204,10 +232,6 @@ class AdviceViewSet(viewsets.ModelViewSet):
         personal_serializer = AdviceSerializer(random_advices, many=True, context={'request': request})
         print(random_advices)
         return Response(personal_serializer.data)
-
-    
-
-        
 
 class GuideViewSet(viewsets.ModelViewSet):
     queryset = Guide.objects.all()
@@ -254,8 +278,8 @@ class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 
-    def get_queryset(self):
-        return Event.objects.filter(user=self.request.user)
+    # def get_queryset(self):
+    #     return Event.objects.filter(user=self.request.user)
 
 @authentication_classes([JWTAuthentication])
 @api_view(['POST'])

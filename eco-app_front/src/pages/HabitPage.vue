@@ -144,7 +144,6 @@ export default {
             })
           // style.disabled = true
         },
-
         openModal(){
           this.showModal = true
         },

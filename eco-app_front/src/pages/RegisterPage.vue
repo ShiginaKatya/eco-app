@@ -13,6 +13,8 @@
       <input  v-model="email" type="email" class="form_input" />
       <label for="" class="form_label">Пароль</label>
       <input v-model="password" type="password" class="form_input" />
+      <input v-model="password_confirm" type="password" class="form_input" />
+      <p>{{ message }}</p>
       <button class="eco-button" type="submit">Зарегистрироваться</button>
       <p>Есть аккаунт?</p>
       <router-link to="/login" class="eco-button">Войти в профиль</router-link>
@@ -49,58 +51,65 @@ export default {
       role: '',
       password: '',
       roles: roles,
+      password_confirm: '',
+      message: '',
 
     };
   },
   methods: {
     async register() {
       // let roleUrl = this.roles.find(role => role.id === this.role).url
-      await 
-        axios.post(`http://127.0.0.1:8000/api/users/`, {
-          email: this.email,
-          password: this.password,
-          username: this.username,
-          role: this.roles.find(role => role.id === this.role).url
-        })
-        .then((res) => {
-          console.log(res.data)
-          
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-      await axiosInstance
-        .post(`token/`, {
-          email: this.email,
-          password: this.password
-          
-        })
-        .then((res) => {
-          window.localStorage.setItem('access_token', res.data.access)
-          window.localStorage.setItem('refresh_token', res.data.refresh)
-          store.commit('setIsAuthenticated', Boolean(res.data.access))
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-      await axiosInstance
-        .get('users/')
-        .then((res) => {
-          let users = res.data
-          let user = users.find(user => user.email === this.email)
-          window.localStorage.setItem('userId', user.id)
-          if (window.localStorage.getItem('error')) {
-            window.location.href = '/'
-            return
-          } else {
-            window.location.href = 'profile'
-            return
-          }
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-       
+      if (this.password === this.password_confirm){
+        await 
+          axios.post(`http://127.0.0.1:8000/api/users/`, {
+            email: this.email,
+            password: this.password,
+            username: this.username,
+            role: this.roles.find(role => role.id === this.role).url
+          })
+          .then((res) => {
+            console.log(res.data)
+            
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+        await axiosInstance
+          .post(`token/`, {
+            email: this.email,
+            password: this.password
+            
+          })
+          .then((res) => {
+            window.localStorage.setItem('access_token', res.data.access)
+            window.localStorage.setItem('refresh_token', res.data.refresh)
+            store.commit('setIsAuthenticated', Boolean(res.data.access))
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+        await axiosInstance
+          .get('users/')
+          .then((res) => {
+            let users = res.data
+            let user = users.find(user => user.email === this.email)
+            window.localStorage.setItem('userId', user.id)
+            if (window.localStorage.getItem('error')) {
+              window.location.href = '/'
+              return
+            } else {
+              window.location.href = 'profile'
+              return
+            }
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+      }
+      else {
+        this.message = 'пароль не совпадает'
+      }
+      
     }
   }
 };

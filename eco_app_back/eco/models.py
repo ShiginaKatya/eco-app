@@ -4,6 +4,7 @@ from .managers import UserManager
 from django.db.models.signals import pre_save, post_init
 from django.dispatch import receiver
 import random
+import uuid
 
 
 class Role(models.Model):
@@ -21,6 +22,8 @@ class User(AbstractUser):
     username = models.CharField(verbose_name='Имя', max_length=255)
     email = models.EmailField(verbose_name='Email', unique=True)
     role = models.ForeignKey(verbose_name='Роль', to=Role, on_delete=models.PROTECT, null=True)
+    # is_email_confirmed = models.BooleanField(default=False)
+    # email_confirmation_token = models.CharField(default=uuid.uuid4, editable=False, max_length=255)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -34,9 +37,9 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
     
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        UserStat.objects.create(user=self)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #     UserStat.objects.create(user=self)
 
 
 class Category(models.Model):
@@ -217,7 +220,7 @@ class Level(models.Model):
     
 
 class UserStat(models.Model):
-    user = models.OneToOneField(verbose_name='Пользователь', to=User, on_delete=models.PROTECT)
+    user = models.OneToOneField(verbose_name='Пользователь', to=User, on_delete=models.CASCADE, unique=True)
     points = models.PositiveIntegerField(verbose_name='Баллы', default=0)
     level = models.ForeignKey(verbose_name='Уровень', to=Level, on_delete=models.PROTECT, null=True)
 
@@ -258,8 +261,10 @@ def determine_level(sender, instance, **kwargs):
 class Advice(models.Model):
     title = models.CharField(verbose_name='Cовет', max_length=255)
     description = models.TextField(verbose_name='Описание', null=True)
-    icon = models.ImageField(verbose_name='Иконка совета', upload_to='advices')
-    category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.CASCADE)
+    icon = models.ImageField(verbose_name='Иконка совета', upload_to='advices', null=True)
+    category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.CASCADE, null=True)
+    author = models.ForeignKey(verbose_name='Автор', to=User, on_delete=models.CASCADE, null=True)
+    is_posted = models.BooleanField(verbose_name='Выложен', default=True)
 
     class Meta:
         verbose_name = 'Совет'
@@ -302,10 +307,10 @@ class Favorite(models.Model):
 
 class Event(models.Model):
     STATUS_CHOICE = [
-        ('A', 'Назначено'),
-        ('R', 'Перенесено'),
-        ('С', 'Завершено'),
-        ('В', 'Отменено')
+        ('Назначено', 'Назначено'),
+        ('Перенесено', 'Перенесено'),
+        ('Завершено', 'Завершено'),
+        ('Отменено', 'Отменено')
 
     ]
     title = models.CharField(verbose_name='Название мероприятия', max_length=255)
@@ -313,8 +318,8 @@ class Event(models.Model):
     afisha_image = models.ImageField(verbose_name='Изображение для объявления', upload_to='events', null=True)
     event_date = models.DateField(verbose_name='Дата мероприятия')
     report = models.TextField(verbose_name='Отчет о прохождении', null=True)
-    report_image =  models.ImageField(verbose_name='Изображение для отчета', upload_to='reports', null=True)
-    status = models.CharField(verbose_name='Статус мероприятия', choices=STATUS_CHOICE, max_length=255)
+    report_image = models.ImageField(verbose_name='Изображение для отчета', upload_to='reports', null=True)
+    status = models.CharField(verbose_name='Статус мероприятия', choices=STATUS_CHOICE, default='Назначено', max_length=255)
     user = models.ForeignKey(verbose_name='Организатор мероприятия', to=User, on_delete=models.CASCADE)
     
     class Meta:
