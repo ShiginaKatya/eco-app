@@ -8,6 +8,8 @@ import ProgressPage from '../pages/ProgressPage.vue'
 import AdvicePage from '../pages/AdvicePage.vue'
 import ProfilePage from '../pages/ProfilePage.vue'
 import EventPage from '../pages/EventPage.vue'
+import GuidePage from '../pages/GuidePage.vue'
+import FavoritePage from '../pages/FavoritePage.vue'
 
 
 const router = createRouter({
@@ -21,7 +23,9 @@ const router = createRouter({
       { path: '/statistic', component: ProgressPage},
       { path: '/advices', component: AdvicePage},
       { path: '/profile', component: ProfilePage},
-      { path: '/event', component: EventPage}
+      { path: '/event', component: EventPage},
+      { path: '/guides', component: GuidePage},
+      { path: '/favorites', component: FavoritePage},
     ]
     })
 

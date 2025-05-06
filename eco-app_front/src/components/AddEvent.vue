@@ -18,21 +18,9 @@
   </div>
 </template>
 <script>
-import Multiselect from 'vue-multiselect'
-import {store} from '../store.js'
-import { onMounted, computed } from 'vue';
-import axios from 'axios'
 import axiosInstance from '../http.js'
 
-// const habits = computed(() => store.state.habits)
-// const plan = computed(() => store.state.plan)
-// const user = computed(() => store.state.user)
-
-
 export default {
-    components: {
-      Multiselect,
-    },
     props: {
       user: Object
     },

@@ -161,7 +161,18 @@ REST_FRAMEWORK = {
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 DEFAULT_FROM_EMAIL = "noreply@email.com"
 # ADMINS = [("admin", "admin@email.com"), ]
-EMAIL_HOST = 'mailhog' 
+EMAIL_HOST = 'localhost' 
 EMAIL_PORT = '1025'
+EMAIL_USE_TLS = False      # MailHog не поддерживает TLS
+EMAIL_USE_SSL = False  
 
 DATE_FORMAT = 'd.m.Y'
+
+CELERY_BROKER_URL = 'memory://'
+CELERY_RESULT_BACKEND = 'rpc://'
+
+# CELERY_BEAT_SCHEDULE = {
+#        'run-every-10-seconds': {
+#            'task': 'eco.tasks.add',
+#            'schedule': timedelta(seconds=10), 
+#    }}

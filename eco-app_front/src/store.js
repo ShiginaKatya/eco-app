@@ -20,6 +20,11 @@ export const store = createStore({
       favorites: [],
       personal_advices: [],
       send_advices: [],
+      categories: [],
+      groups: [],
+      favorites: [],
+      guides: [],
+      send_guides: [],
 
     }
   },
@@ -77,6 +82,21 @@ export const store = createStore({
     },
     setSendAdvices(state, send_advices) {
       state.send_advices = send_advices
+    },
+    setCategories(state, categories) {
+      state.categories = categories
+    },
+    setGroups(state, groups) {
+      state.groups = groups
+    },
+    setFavorites(state, favorites) {
+      state.favorites = favorites
+    },
+    setSendGuides(state, send_guides) {
+      state.send_guides = send_guides
+    },
+    setGuides(state, guides) {
+      state.guides = guides
     },
 
 }

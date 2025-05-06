@@ -3,8 +3,8 @@
     <aside class="sidebar">
       <ProfileMenu></ProfileMenu>
     </aside>
-    <main class="main">
-      <section class="main_header">
+    <main class="main main_sections">
+      <section class="main_profile">
         <img src="/profile_image.svg" alt="avatar" class="profile_image">
         <ul class="header_info">
           <li class="info_item">{{ user.username }}</li>
@@ -12,6 +12,44 @@
         </ul>
         <button class="eco-button">Пройти анкетирование</button>
       </section>
+      <section class="main_groups">
+        <div class="modal" v-if="formGroup">
+          <div class="modal_title">
+            <p class="title_text">Создать группу</p>
+            <button class="close" @click="closeModal"></button>
+          </div>
+          <input type="text" v-model="group.title">
+          <input type="email" v-model="email">
+          <button class="eco-button" @click="addUser()">Добавить пользователя</button>
+          <p v-for="member in members" :key="member.id">
+            {{ member.member.url }}
+          </p>
+          <button class="eco-button" @click="createGroup()">Cоздать группу</button>
+        </div>
+        <button class="eco-button" @click="openGroup()">Создать группу</button>
+      </section>
+      <ul class="main_usergroups">
+        <li class="usergroup" v-for="group in groups" :key="group.id">
+          <p class="title_text">{{ group.title }}</p>
+          <div class="usergroup_confirm" v-if="needConfirm(group.members)">
+            <p class="title">Приглашение в группу</p>
+            <div v-for="member in group.members" :key="member.id">
+              <div class="button_group" v-if="member.user.url === user.url">
+                <button class="eco-button" @click="confirmMember(member.url)">Принять</button>
+                <button class="eco-button white" @click="deleteMember(member.url)">Отклонить</button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="usergroup_group">
+            <ul class="group_list">
+              <li class="group_member" v-for="member in group.members" :key="member.id">
+                <p class="member_name">{{ member.user.username }}</p>
+                <p class="member_points">{{ member.member_stat[0]?.points }}</p>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
       <section class="main_actions">
         <div class="actions_plan">
           <p class="latest_type">план</p>
@@ -26,12 +64,12 @@
           </li>
         </ul>
       </section>
+      <p class="title_text">Последние изменения в Избранном</p>
       <section class="main_favorites">
-        <p>Последние изменения в Избранном</p>
         <ul class="favorites_list">
           <li v-for="favorite in favorites" :key="favorite.id" class="list_latest">
-            <p class="latest_title">{{ favorite.advice.title }}</p>
-            <p class="latest_type">{{ favorite.advice.description }}</p>
+            <p class="latest_title">{{ favorite.advice?.title }}{{ favorite.guide?.title}}</p>
+            <p class="latest_type">{{ favorite.advice?.description }}{{ favorite.guide?.annotation }}</p>
           </li>
         </ul>
       </section>
@@ -51,6 +89,8 @@ const userchallenges = computed(() => store.state.userchallenges)
 const plans = computed(() => store.state.plans)
 const userStats = computed(() => store.state.userstat)
 const favorites = computed(() => store.state.favorites)
+const users = computed(() => store.state.users)
+const groups = computed(() => store.state.groups)
 
 
 export default {
@@ -95,6 +135,15 @@ export default {
           .catch((err) => {
             console.log(err)
           }) 
+        await axiosInstance
+          .get('/groups')
+          .then(res => {
+            console.log(res.data)
+            store.commit('setGroups', res.data)
+          })
+          .catch((err) => {
+            console.log(err)
+          }) 
         
       })
     },
@@ -105,11 +154,19 @@ export default {
         plans: plans,
         userStats: userStats,
         favorites: favorites,
+        users: users,
+        formGroup: false,
+        email: '',
+        members: [],
+        group: {
+          title: ''
+        },
+        groups: groups
+
     
       }
     },
     computed:{
-      
     },
     methods: {
       challengeProcent(tasks){
@@ -127,7 +184,64 @@ export default {
         else{
           return null
         }
+      },
+      async openGroup(){
+        await axiosInstance
+          .get('/users')
+          .then(res => {
+            console.log(res.data)
+            store.commit('setUsers', res.data)
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+        this.formGroup = true
+      },
+      addUser(){
+        const member = this.users.find(user => user.email === this.email)
+        this.members.push({member: member, is_confirm: false})
+        console.log(this.members)
+      },
+      async createGroup(){
+        this.members.push({member: this.user, is_confirm: true})
+        this.group.members = this.members.map(member => ({
+          user: member.member.url,
+          is_confirm: member.is_confirm
+        }))
+        console.log(this.group)
+        await axiosInstance
+          .post('/groups/', this.group)
+          .then(res => {
+            console.log(res.data)
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+      },
+      async confirmMember(memberUrl){
+        await axios
+          .patch(`${memberUrl}`, {
+            is_confirm: true
+          })
+      },
+      async deleteMember(memberUrl){
+        await axios
+          .delete(`${memberUrl}`)
+      },
+      sortGroups(){
+        this.groups.map(group => (
+          group.members
+        )
+
+        )
+      },
+      needConfirm(members){
+        return members.some(member => 
+          member.user.url === this.user.url && member.is_confirm === false
+        )
       }
+
+
        
     }
 }
@@ -144,11 +258,16 @@ export default {
   min-width: 320px;
   width: calc(100vw - 300px);
 } */
-.main_header{
+
+.main_usergroups{
   display: flex;
-  gap: 20px;
-  margin: 10px 0;
-  padding: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.main_profile{
+  display: flex;
+  gap: 16px;
+  padding: 16px;
   align-items: center;
   justify-items: center;
 }
@@ -160,11 +279,74 @@ export default {
   background-color: grey;
 }
 .main_actions{
-  display: flex;
-  gap: 20px;
-  max-width: 1000px;
-  padding: 10px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 2fr 1fr 1fr;
 }
+.usergroup_confirm{
+  display: grid;
+  gap: 8px;
+}
+.usergroup{
+  padding: 16px;
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+
+}
+.modal{
+  right: 0;
+  bottom: 0;
+  left: 0;
+  top: 0;
+  background: white;
+  border: 1px solid lightgray;
+  border-radius: 8px;
+  max-width: fit-content;
+  height: fit-content;
+  max-height: 100vh;
+  margin: auto;
+  position: fixed;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+p, li{
+  font-size: 14px;
+}
+.modal_title{
+  display: flex;
+  justify-content: space-between;
+  align-self: stretch;
+  align-items: center;
+}
+.title_text{
+  font-size: 16px;
+  font-weight: 500;
+  font-family: Golos Text, sans-serif;
+}
+.modal_text{
+  font-size: 12px;
+  color: grey;
+  font-weight: 500;
+  padding-top: 8px ;
+  padding-bottom: 4px;
+}
+.modal_input{
+  width: 100%;
+  height: 40px;
+  font-size: 16px;
+  font-family: Raleway, sans-serif;
+  border-radius: 4px;
+  border: 1px solid lightgray;
+  padding: 8px;
+}
+
 .actions_challenges{
   display: flex;
   flex-direction: column;
@@ -172,8 +354,6 @@ export default {
 
 }
 .actions_plan{
-  min-width: 300px;
-  max-width: 500px;
   border: 1px solid gray;
   border-radius: 8px;
   height: 300px;
@@ -196,7 +376,6 @@ export default {
 }
 .latest_title{
   font-weight: 500;
-  width: 200px;
   font-size: 16px;
   font-family: 'Golos Text', sans-serif;
 }
@@ -204,19 +383,17 @@ export default {
   font-size: 14px;
   color: grey;
 }
-.main_favorites{
-  padding: 20px;
-}
 .favorites_list{
-  display: flex;
-  gap: 20px;
-  margin: 10px 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 .list_latest{
-  width: 300px;
-  padding: 10px;
+  padding: 16px;
   border: 1px solid gray;
   border-radius: 8px;
+  display: grid;
+  gap: 8px;
 
 }
 .info_item{

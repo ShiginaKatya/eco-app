@@ -5,12 +5,12 @@
     </aside>
     <main class="main">
       <section class="main_header"> 
-        <h1 class="header_title">Cоветы</h1>
+        <h1 class="header_title">Руководства</h1>
       </section>
       <section class="main_sections">
         <div v-if="user.role?.title === 'Администратор'">
           <ul>
-            <li v-for="advice in send_advices" :key="advice?.id">
+            <li v-for="guide in send_guides" :key="guide?.id">
               <p class="advice_title">{{advice.title}}</p>
               <p class="advice_title">{{advice.author.username}}</p>
               <p class="advice_description">{{advice.description}}</p>
@@ -18,18 +18,6 @@
             </li>
           </ul>
         </div>
-        <p class="advice_title personal">Стоит обратить внимание</p>
-        <ul class="personal">
-          <li class="advice" v-for="advice in personal_advices" :key="advice?.id">
-            <button @click="addFavorite(advice.url)" class="advice_button"></button>
-            <img :src="advice.icon" alt="" class="advice_picture">
-            <div class="advice_text">
-              <p class="advice_title">{{advice.title}}</p>
-              <p class="advice_category">{{advice.category?.title}}</p>
-              <p class="advice_description">{{advice.description}}</p>
-            </div>
-          </li>
-        </ul>
         <section class="section_advices">
           <section class="advices_all">
             <div class="advices_search">
@@ -45,27 +33,31 @@
               </li>
             </ul>
             <ul class="advice_list">
-              <li class="advice" v-for="advice in advices" :key="advice.id">
-                <button @click="addFavorite(advice.url)" class="advice_button" :style="favoriteStyle(advice.url)"></button>
-                <img :src="advice.icon" alt="" class="advice_picture">
+              <li class="advice" v-for="guide in guides" :key="guide.id">
+                <button @click="addFavorite(guide.url)" class="advice_button" :style="favoriteStyle(guide.url)"></button>
+                <img :src="guide.icon" alt="" class="advice_picture">
                 <div class="advice_text">
-                  <p class="advice_title">{{advice.title}}</p>
-                  <p class="advice_category">{{advice.category?.title}}</p>
-                  <p class="advice_description">{{advice.description}}</p>
+                  <p class="advice_title">{{guide.title}}</p>
+                  <p class="advice_category">{{guide.category?.title}}</p>
+                  <p class="advice_description">{{guide.annotation}}</p>
+                  <button @click="showGuide(guide.url)" class="eco-button guide-button">Подробнее</button>
+                  <DetailGuide v-if="guideUrl === guide.url" :guide="guide" @close="closeModal"></DetailGuide>
                 </div>
               </li>
             </ul>
           </section>
           <div class="advice_add modal">
             <div class="modal_title">
-              <p class="title">Поделитесь своим советом</p>
+              <p class="title">Поделитесь руководством на основе Ваших наблюдений</p>
             </div>
             <form class="modal_form" >
-              <label class="modal_text" for="title">Совет</label>
-              <input class="modal_input" v-model="advice_text">
-              <label class="modal_text" for="description">Описание</label>
-              <textarea class="modal_input" v-model="description"></textarea>
-              <button class="eco-button form-button" @click.prevent="sendAdvice()">Отправить</button>
+              <label class="modal_text" for="guide_title">Заголовок руководства</label>
+              <input class="modal_input" v-model="guide_title">
+              <label class="modal_text" for="guide_annotation">Важное</label>
+              <textarea class="modal_input" v-model="guide_annotation"></textarea>
+              <label class="modal_text" for="guide_text">Текст</label>
+              <textarea class="modal_input" v-model="guide_text"></textarea>
+              <button class="eco-button form-button" @click.prevent="sendGuide()">Отправить</button>
             </form>
           </div>
         </section>
@@ -81,11 +73,11 @@ import {store} from '../store.js'
 import { onMounted, computed } from 'vue';
 import axiosInstance from '../http.js'
 import axios from 'axios'
+import DetailGuide from '../components/DetailGuide.vue';
 
 const user = computed(() => store.state.user) 
-const advices = computed(() => store.state.advices)
-const personal_advices = computed(() => store.state.personal_advices)
-const send_advices = computed(() => store.state.send_advices)
+const guides = computed(() => store.state.guides)
+const send_guides = computed(() => store.state.send_guides)
 const categories = computed(() => store.state.categories)
 const favorites = computed(() => store.state.favorites)
 
@@ -93,14 +85,15 @@ const favorites = computed(() => store.state.favorites)
 export default {
     components: {
       ProfileMenu,
+      DetailGuide
     },
     setup() {
       onMounted(async () => {
         await axiosInstance
-          .get('/advices?is_posted=True')
+          .get('/guides?is_posted=True')
           .then(res => {
             console.log(res.data)
-            store.commit('setAdvices', res.data)
+            store.commit('setGuides', res.data)
           })
           .catch((err) => {
             console.log(err)
@@ -115,19 +108,10 @@ export default {
             console.log(err)
           })
         await axiosInstance
-          .get('/advices/personal')
+          .get('/guides?is_posted=False')
           .then(res => {
             console.log(res.data)
-            store.commit('setPersonalAdvices', res.data)
-          })
-          .catch((err) => {
-            console.log(err)
-          })
-        await axiosInstance
-          .get('/advices?is_posted=False')
-          .then(res => {
-            console.log(res.data)
-            store.commit('setSendAdvices', res.data)
+            store.commit('setSendGuides', res.data)
           })
           .catch((err) => {
             console.log(err)
@@ -146,22 +130,23 @@ export default {
     data() {
       return {
         user: user,
-        advices: advices,
-        personal_advices: personal_advices,
-        send_advices: send_advices,
-        advice_text: '',
-        description: '',
+        guides: guides,
+        send_guides: send_guides,
+        guide_text: '',
+        guide_annotation: '',
+        guide_title: '',
         categories: categories,
         searchQuery: '',
-        favorites: favorites
+        favorites: favorites,
+        guideUrl: null,
       }
     },
     computed:{
      
     },
     methods: {
-      async addFavorite(adviceUrl){
-        let favorite = this.favorites.find(favorite => favorite.advice.url === adviceUrl)
+      async addFavorite(guideUrl){
+        let favorite = this.favorites.find(favorite => favorite.guide?.url === guideUrl)
         if (favorite){
           await axiosInstance
             .delete(`/favorites/${favorite.id}/`)
@@ -176,9 +161,9 @@ export default {
           await axiosInstance
             .post('favorites/', {
               user: this.user.url,
-              advice: adviceUrl,
-              favorite_type: 'A',
-              guide: null
+              guide: guideUrl,
+              favorite_type: 'G',
+              advice: null
             })
             .then((res) => {
               console.log(res.data)
@@ -197,63 +182,69 @@ export default {
           .catch((err) => {
             console.log(err)
           })
-        this.favoriteStyle(adviceUrl)
+        this.favoriteStyle(guideUrl)
       },
-      async sendAdvice(){
+      async sendGuide(){
         await axiosInstance
-          .post('advices/', {
+          .post('guides/', {
             author: this.user.url,
-            title: this.advice_text,
-            description: this.description,
+            title: this.guide_title,
+            annotation: this.guide_annotation,
+            description: this.guide_description,
             is_posted: false
           })
       },
-      async postAdvice(adviceId){
+      async postGuide(guideId){
         await axiosInstance
-          .patch(`advices/${adviceId}/`, {
+          .patch(`guides/${guideId}/`, {
             is_posted: true
           })
       },
-      async filterAdvice(category){
+      async filterGuide(category){
         await axiosInstance
-          .get('/advices/', {
+          .get('/guides/', {
             params: {
               category:  category!== "0" ? category : null
             }
           })
           .then((res) => {
             console.log(res.data)
-            store.commit('setAdvices', res.data)
+            store.commit('setGuides', res.data)
           })
           .catch((err) => {
             console.log(err)
           })
       },
-      searchAdvice(){
+      searchGuide(){
         if (this.searchQuery){
           axiosInstance
-            .get(`/advices/search/`, {
+            .get(`/guides/search/`, {
               params: {
                 q: this.searchQuery
               }
             })
             .then((res) => {
               console.log(res.data)
-              store.commit('setAdvices', res.data)
+              store.commit('setGuides', res.data)
             })
             .catch((err) => {
               console.log(err)
             })
         }
       },
-      favoriteStyle(adviceUrl){
-        if (this.favorites.find(favorite => favorite.advice.url === adviceUrl)){
+      favoriteStyle(guideUrl){
+        if (this.favorites.find(favorite => favorite.guide?.url === guideUrl)){
           return {
             backgroundImage : "url('favorite_hover.svg')"
           }
         }
+      },
+      showGuide(guide){
+        this.guideUrl = guide
+      },
+      closeModal() {
+          this.guideUrl = null
       }
-
     }
 }
 </script>
@@ -266,27 +257,26 @@ export default {
 }
 .advice_description{
   font-size: 12px;
-  color: gray;
+  color: black;
   height: auto;
+  font-weight: 500;
 }
 .advice_category{
   font-size: 14px;
   color: #2E8B57;
 }
 .advice_picture{
-  width: 48px;
-  height: 48px;
   display: block;
   margin: 0 auto;
+  width: 100%;
+  border-radius: 4px;
 
 }
 .advice{
   padding: 16px;
   border: 1px solid lightgray;
   border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 .advice_button{
   width: 24px;
@@ -307,13 +297,27 @@ export default {
 .advice_list{
   /* max-width: fit-content; */
   display: grid;
-  grid-template-columns: 1fr 1fr ;
+  grid-template-columns: 1fr ;
   gap: 16px;
 }
 .section_advices{
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+.advice{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  
+
+}
+.advice_text{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+
 }
 
 .personal .advice{
@@ -346,7 +350,7 @@ export default {
 .advices_all{
   display: grid;
   gap: 16px;
-  grid-column: span 2;
+  height: fit-content;
 }
 
 .modal_form{
@@ -372,6 +376,9 @@ export default {
   font-size: 16px;
   font-weight: 500;
   font-family: Golos Text, sans-serif;
+}
+.guide-button{
+  align-self: flex-end;
 }
 
 .modal_text{

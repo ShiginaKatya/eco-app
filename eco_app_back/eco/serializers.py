@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, Achievement, UserAchievement, Challenge, Task, UserChallenge, UserTask, UserStat, Level, FormQuestion, UserAnswer, Advice, Guide, Favorite, Event
+from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, Achievement, UserAchievement, Challenge, Task, UserChallenge, UserTask, UserStat, Level, FormQuestion, UserAnswer, Advice, Guide, Favorite, Event, UserGroup, GroupMember
 
 class RoleSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -201,8 +201,12 @@ class LevelSerializer(serializers.HyperlinkedModelSerializer):
         model = Level
         fields = ['id', 'url', 'min_points', 'title', 'description']
 
+class AchievementStatSerializer(serializers.Serializer):
+    achievement = AchievementSerializer(many=False, read_only=True)  # Или укажите нужное поле
+    count = serializers.IntegerField()
+
 class UserStatSerializer(serializers.HyperlinkedModelSerializer):
-    all_achievements = UserAchievementSerializer(many=True, read_only=True)
+    all_achievements = AchievementStatSerializer(many=True, read_only=True)
     next_level = LevelSerializer( read_only=True)
 
     def __init__(self, *args, **kwargs):
@@ -211,11 +215,11 @@ class UserStatSerializer(serializers.HyperlinkedModelSerializer):
         if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
             self.Meta.depth = 0
         else:
-            self.Meta.depth = 2
+            self.Meta.depth = 1
 
     class Meta:
         model = UserStat
-        fields = ['url', 'id', 'user', 'level', 'completed_plans', 'all_achievements', 'points', 'next_level']
+        fields = ['url', 'id', 'user', 'level', 'completed_plans', 'all_achievements', 'points', 'next_level', 'achievements_count']
 
 class AdviceSerializer(serializers.HyperlinkedModelSerializer):
     def __init__(self, *args, **kwargs):
@@ -228,12 +232,20 @@ class AdviceSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Advice
-        fields = ['id', 'url', 'title', 'description', 'author', 'category', 'icon', 'is_posted']
+        fields = ['id', 'url', 'title', 'description', 'category', 'icon', 'is_posted']
 
 class GuideSerializer(serializers.HyperlinkedModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super(GuideSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 1
+
     class Meta:
         model = Guide
-        fields = '__all__'
+        fields = ['id', 'url', 'title', 'description', 'category', 'annotation', 'icon', 'is_posted']
 
 class FavoriteSerializer(serializers.HyperlinkedModelSerializer):
     def __init__(self, *args, **kwargs):
@@ -254,3 +266,30 @@ class EventSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Event
         fields = ['url', 'id', 'user', 'title', 'description', 'event_date', 'status', 'report', 'report_image', 'afisha_image']
+
+class GroupMemberSerializer(serializers.HyperlinkedModelSerializer):
+    member_stat = UserStatSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = GroupMember
+        fields = ['url', 'user', 'group', 'is_confirm', 'member_stat']
+        depth = 1
+
+class GroupMemberCreateSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = GroupMember
+        fields = ['url', 'user', 'group', 'is_confirm']
+
+class UserGroupSerializer(serializers.HyperlinkedModelSerializer):
+    members = GroupMemberSerializer(many=True)
+
+    class Meta:
+        model = UserGroup
+        fields = [ 'url', 'id', 'title', 'members']
+
+class UserGroupCreateSerializer(serializers.HyperlinkedModelSerializer):
+    members = GroupMemberCreateSerializer(many=True)
+
+    class Meta:
+        model = UserGroup
+        fields = [ 'url', 'id', 'title', 'members']

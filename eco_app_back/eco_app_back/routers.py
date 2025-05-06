@@ -1,6 +1,6 @@
 from rest_framework import routers
-from eco.views import UserViewSet, RoleViewSet, CategoryViewSet, HabitViewSet, FormViewSet, UserPlanViewSet, UserHabitViewSet, AchievementViewSet, UserAchievementViewSet, ChallengeViewSet, TaskViewSet, UserChallengeViewSet, UserTaskViewSet, UserStatViewSet, LevelViewSet, FormQuestionViewSet, UserAnswerViewSet, AdviceViewSet, GuideViewSet, FavoriteViewSet, EventViewSet
-
+from eco.views import UserViewSet, RoleViewSet, CategoryViewSet, HabitViewSet, FormViewSet, UserPlanViewSet, UserHabitViewSet, AchievementViewSet, UserAchievementViewSet, ChallengeViewSet, TaskViewSet, UserChallengeViewSet, UserTaskViewSet, UserStatViewSet, LevelViewSet, FormQuestionViewSet, UserAnswerViewSet, AdviceViewSet, GuideViewSet, FavoriteViewSet, EventViewSet, UserGroupViewSet, GroupMemberViewSet
+from eco.views import RegisterView
 router = routers.DefaultRouter()
 
 router.register('roles', RoleViewSet )
@@ -24,4 +24,6 @@ router.register('advices', AdviceViewSet)
 router.register('guides', GuideViewSet)
 router.register('favorites', FavoriteViewSet)
 router.register('events', EventViewSet)
-
+router.register('groups', UserGroupViewSet)
+router.register('members', GroupMemberViewSet)
+# router.register('register', RegisterView)

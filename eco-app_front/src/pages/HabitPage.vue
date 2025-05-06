@@ -4,44 +4,46 @@
         <ProfileMenu></ProfileMenu>
     </aside>
     <main class="main">
-      <div class="main_header">
+      <section class="main_header">
         <h1 class="header_title">Трекер эко-привычек</h1>
-      </div>
-      <AddPlanModal v-if="showModal" @close="closeModal"></AddPlanModal>
-      <button class="eco-button create" @click="openModal()">Создать план</button>
-      <div class="plan_list">
-        <ul class="plan_card" v-for="plan in plans" :key="plan.id">
-          <li class="plan_goal"> {{plan.goal}}</li>
-          <li class="plan_habit" v-for="habit in plan.habits" :key="habit.id">
-            <p class="habit_title">{{habit.habit.title}}</p>
-            <input class="habit_checkbox" v-model=isChecked[habit.id] type="checkbox" :disabled="habit.status" :checked="habit.status" @input="complete(habit.id)"/>
-          </li>
-          <li>
-            <button @click="showQuestions(plan.url)" v-if="!showList(plan.url)" class="eco-button">Самоанализ</button>
-            <ul class="questions" v-if="showList(plan.url)">
-              <li class="question" v-for="question in plan.form.questions" :key="question.id">
-                <p class="question_title">{{question.title}}</p>
-                <input class="question_input" @input="questionUrl[question.id]=question.url" v-model=answers[question.id] placeholder="Напишите свой ответ" type="text">
-              </li>
-              <li>
-                <button @click="sendAnswers(plan.form)" class="eco-button">Завершить план</button>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-      <div v-if="achievementNotify" class="modal">
-        <div class="modal_title">
-          <p class="title">Вы получили награду!</p>
-          <button  class="close" @click="achievementNotify = null"></button>
+      </section>
+      <section class="main_sections">
+        <AddPlanModal v-if="showModal" @close="closeModal"></AddPlanModal>
+        <button class="eco-button create" @click="openModal()">Создать план</button>
+        <div class="plan_list">
+          <ul class="plan_card" v-for="plan in plans" :key="plan.id">
+            <li class="plan_goal"> {{plan.goal}}</li>
+            <li class="plan_habit" v-for="habit in plan.habits" :key="habit.id">
+              <p class="habit_title">{{habit.habit.title}}</p>
+              <input class="habit_checkbox" v-model=isChecked[habit.id] type="checkbox" :disabled="habit.status" :checked="habit.status" @input="complete(habit.id)"/>
+            </li>
+            <li>
+              <button @click="showQuestions(plan.url)" v-if="!showList(plan.url)" class="eco-button">Самоанализ</button>
+              <ul class="questions" v-if="showList(plan.url)">
+                <li class="question" v-for="question in plan.form.questions" :key="question.id">
+                  <p class="question_title">{{question.title}}</p>
+                  <input class="question_input" @input="questionUrl[question.id]=question.url" v-model=answers[question.id] placeholder="Напишите свой ответ" type="text">
+                </li>
+                <li>
+                  <button @click="sendAnswers(plan.form)" class="eco-button">Завершить план</button>
+                </li>
+              </ul>
+            </li>
+          </ul>
         </div>
-        <div class="modal_body">
-          <p class="body_title">{{achievementNotify.achievement.title}}</p>
-          <img class="modal_img" :src='achievementNotify.achievement.icon' alt="Иконка награды">
-          <p class="body_description">{{achievementNotify.achievement.description}}</p>
-          <button  class="eco-button" @click="achievementNotify = null">ОК</button>
+        <div v-if="achievementNotify" class="modal">
+          <div class="modal_title">
+            <p class="title">Вы получили награду!</p>
+            <button  class="close" @click="achievementNotify = null"></button>
+          </div>
+          <div class="modal_body">
+            <p class="body_title">{{achievementNotify.achievement.title}}</p>
+            <img class="modal_img" :src='achievementNotify.achievement.icon' alt="Иконка награды">
+            <p class="body_description">{{achievementNotify.achievement.description}}</p>
+            <button  class="eco-button" @click="achievementNotify = null">ОК</button>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
   </div>
 </template>
@@ -190,38 +192,36 @@ export default {
 </script>
 
 <style scoped>
-.create{
-  margin: 10px;
-}
+
 .plan_card{
   list-style-type: none;
-  min-width: 300px;
-  max-width: 400px;
+  /* min-width: 300px;
+  max-width: 400px; */
   height: fit-content;
   border: 1px solid lightgrey;
   border-radius: 8px;
   background-color: white;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   padding: 16px;
 }
 .plan_list{
   display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr 1fr;
-  margin: 10px;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr 1fr;
+
 }
 .plan_habit{
   display: flex;
-  gap: 20px;
+  gap: 16px;
   align-items: center;
   justify-content: space-between;
   background-color: #F5F5DC;
   padding: 8px;
   border-radius: 8px;
-  /* font-weight: 500; */
-  font-size: 16px;
+  font-weight: 500;
+  font-size: 14px;
 }
 .plan_goal{
   text-align: left;
@@ -258,7 +258,7 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: start;
-  gap: 10px;
+  gap: 8px;
 }
 
 

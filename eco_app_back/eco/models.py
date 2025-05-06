@@ -1,10 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .managers import UserManager
-from django.db.models.signals import pre_save, post_init
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-import random
-import uuid
+from django.db import connection
+# import random
+# import uuid
 
 
 class Role(models.Model):
@@ -37,9 +38,9 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
     
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #     UserStat.objects.create(user=self)
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        UserStat.objects.create(user=self)
 
 
 class Category(models.Model):
@@ -230,10 +231,21 @@ class UserStat(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    @property
+    def achievements_count(self):
+        return UserAchievement.objects.filter(user=self.user).count()
     
     @property
     def all_achievements(self):
-       return UserAchievement.objects.filter(user=self.user)
+        achievement_stat = []
+        user_achievements = UserAchievement.objects.filter(user=self.user)
+        achievements_types = Achievement.objects.all()
+        for achievement_type in achievements_types:
+            user_count = user_achievements.filter(achievement = achievement_type).count()
+            if user_count > 0:
+                achievement_stat.append({'achievement': achievement_type, 'count': user_count })
+        return achievement_stat
     
     @property
     def completed_plans(self):
@@ -273,11 +285,28 @@ class Advice(models.Model):
     def __str__(self):
         return self.title
 
+# @receiver(post_save, sender=Advice)
+# def update_fts(sender, instance, **kwargs):
+#     with connection.cursor() as cursor:
+#         cursor.execute("DELETE FROM advice_search WHERE rowid = %s", [instance.id])
+#         cursor.execute(
+#             "INSERT INTO advice_search (rowid, title, description) VALUES (%s, %s, %s)",
+#             [instance.id, instance.title, instance.description]
+#         )
+
+# @receiver(post_delete, sender=Advice)
+# def delete_fts(sender, instance, **kwargs):
+#     with connection.cursor() as cursor:
+#         cursor.execute("DELETE FROM advice_search WHERE rowid = %s", [instance.id])
+
 class Guide(models.Model):
     title = models.CharField(verbose_name='Руководство', max_length=255)
     description = models.TextField(verbose_name='Описание', null=True)
+    annotation = models.TextField(verbose_name='Важное', null=True)
     icon = models.ImageField(verbose_name='Изображение для руководства', upload_to='guides')
     category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.CASCADE)
+    is_posted = models.BooleanField(verbose_name='Выложен', default=True)
+    author = models.ForeignKey(verbose_name='Автор', to=User, on_delete=models.CASCADE, null=True)
 
     class Meta:
         verbose_name = 'Руководство'
@@ -328,3 +357,29 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+
+class UserGroup(models.Model):
+    title = models.CharField(verbose_name='Название группы', max_length=255)
+
+    class Meta:
+        verbose_name = 'Группа пользователей'
+        verbose_name_plural = 'Группы пользователей'
+
+    def __str__(self):
+        return self.title
+
+class GroupMember(models.Model):
+    user = models.ForeignKey(verbose_name='Пользователь', to=User, on_delete=models.CASCADE, null=True)
+    group = models.ForeignKey(verbose_name='Группа', to=UserGroup, on_delete=models.CASCADE, related_name='members', null=True)
+    is_confirm = models.BooleanField(verbose_name='Потверждение', default=False)
+
+    class Meta:
+        verbose_name = 'Участник группы'
+        verbose_name_plural = 'Участники группы'
+
+    def __str__(self):
+        return self.user.username
+    
+    @property
+    def member_stat(self):
+       return UserStat.objects.filter(user=self.user)

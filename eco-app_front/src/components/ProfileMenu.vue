@@ -110,15 +110,17 @@ export default {
 <style scoped>
 
 .sidebar_menu{
-  /* position: fixed; */
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   /* top: 0;
   left: 0; */
   height: 100vh;
-  width: 260px;
-  border-radius: 10px;
+  width: 270px;
+  border-radius: 8px;
   border-right: 1px solid lightgray;
 
 }
@@ -141,12 +143,12 @@ export default {
   text-transform: uppercase;
   font-family: Golos Text, sans-serif;
   font-weight: bolder;
-  margin: 5px;
+  margin: 4px 8px;
   
 }
 .menu_link{
-  margin: 2px 8px;
-  padding: 10px 8px;
+  margin: 4px 8px;
+  padding: 8px;
   display: block;
   color: black;
   font-size: 16px;
@@ -159,9 +161,8 @@ export default {
   font-weight: 500;
 }
 .menu_profile .menu_link{
-  padding: 10px 15px;
   display: flex;
-  gap: 20px;
+  gap: 24px;
   justify-content: flex-starts;
   align-items: center;
 }

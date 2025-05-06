@@ -20,7 +20,7 @@
             </li>
           </ul> 
         </section>
-        <section class="main_userchallenges">
+        <section class="main_userchallenges" v-if="userchallenges.length !== 0">
           <p class="userchallenges_title">Мои челленджи</p>
           <ul class="userchallenges_list">
             <li class="userchallenges_item" v-for="challenge in userchallenges" :key="challenge.id">
@@ -240,20 +240,19 @@ export default {
 .main_sections{
   display: grid;
   grid-template-columns: 2fr 1fr;
-  flex: 1
+  flex: 1;
+  gap: 16px;
 }
-.main_challenges{
-  margin: 10px;
-}
+
 .challenges_list{
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 16px;
 }
 .challenges_item{
   max-width: 350px;
   max-height: 200px;
-  padding: 20px;
+  padding: 16px;
   border-radius: 8px;
   background-color: white;
   border: 1px solid lightgray;
@@ -267,13 +266,12 @@ export default {
 .challenge_category{
   font-size: 14px;
   color: gray;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .main_userchallenges{
   border: 1px solid lightgray;
   background-color: white;
   border-radius: 8px;
-  margin: 10px;
   padding: 16px;
 }
 .userchallenges_title{
@@ -286,7 +284,7 @@ export default {
 .userchallenges_list{
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   align-items: center;
   justify-content: center;
 }
@@ -344,9 +342,9 @@ input[type="checkbox"]:checked {
   background-image: url("/check.svg");
   background-position: center;
 }
-.userchallenges_item .eco-button{
+/* .userchallenges_item .eco-button{
   margin: 10px auto;
-}
+} */
 .progress_bar{
   accent-color: #2E8B57;
   margin: 0 auto;

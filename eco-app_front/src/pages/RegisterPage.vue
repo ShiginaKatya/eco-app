@@ -61,11 +61,11 @@ export default {
       // let roleUrl = this.roles.find(role => role.id === this.role).url
       if (this.password === this.password_confirm){
         await 
-          axios.post(`http://127.0.0.1:8000/api/users/`, {
+          axios.post(`http://127.0.0.1:8000/api/register/`, {
             email: this.email,
             password: this.password,
             username: this.username,
-            role: this.roles.find(role => role.id === this.role).url
+            // role: this.roles.find(role => role.id === this.role).url
           })
           .then((res) => {
             console.log(res.data)

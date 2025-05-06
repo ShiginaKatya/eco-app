@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, UserAchievement, Achievement, Task, Challenge, UserChallenge, UserTask, Level, UserStat, FormQuestion, UserAnswer, Advice, Guide, Favorite, Event
+from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, UserAchievement, Achievement, Task, Challenge, UserChallenge, UserTask, Level, UserStat, FormQuestion, UserAnswer, Advice, Guide, Favorite, Event, UserGroup
 
 admin.site.register(Role)
 admin.site.register(User)
@@ -23,3 +23,4 @@ admin.site.register(Advice)
 admin.site.register(Guide)
 admin.site.register(Favorite)
 admin.site.register(Event)
+admin.site.register(UserGroup)

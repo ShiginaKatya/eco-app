@@ -1,8 +1,8 @@
 # from django.shortcuts import render
 
 from rest_framework import viewsets
-from .serializers import UserSerializer, RoleSerializer, CategorySerializer, HabitSerializer, FormSerializer, UserPlanSerializer, UserHabitSerializer, AchievementSerializer, UserAchievementSerializer, ChallengeSerializer, TaskSerializer, UserChallengeSerializer, UserTaskSerializer, UserStatSerializer, LevelSerializer, FormQuestionSerializer, UserAnswerSerializer, AdviceSerializer, GuideSerializer, FavoriteSerializer, EventSerializer
-from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, Achievement, UserAchievement, Task, Challenge, UserChallenge, UserTask, UserStat, Level, FormQuestion, UserAnswer, Advice, Guide, Favorite, Event
+from .serializers import UserSerializer, RoleSerializer, CategorySerializer, HabitSerializer, FormSerializer, UserPlanSerializer, UserHabitSerializer, AchievementSerializer, UserAchievementSerializer, ChallengeSerializer, TaskSerializer, UserChallengeSerializer, UserTaskSerializer, UserStatSerializer, LevelSerializer, FormQuestionSerializer, UserAnswerSerializer, AdviceSerializer, GuideSerializer, FavoriteSerializer, EventSerializer, UserGroupSerializer, GroupMemberSerializer, UserGroupCreateSerializer
+from .models import User, Role, Category, Habit, Form, UserPlan, UserHabit, Achievement, UserAchievement, Task, Challenge, UserChallenge, UserTask, UserStat, Level, FormQuestion, UserAnswer, Advice, Guide, Favorite, Event, UserGroup, GroupMember
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
@@ -18,6 +18,15 @@ from rest_framework.views import APIView
 import uuid
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db.models import Prefetch
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.db import connection
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
 
 
 class RoleViewSet(viewsets.ModelViewSet):
@@ -28,26 +37,27 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-# class RegisterView(APIView):
-#     def post(self, request):
-#         email = request.data.get('email')
-#         password = request.data.get('password')
-#         user = User.objects.create(email=email)
-#         user.set_password(password)
-#         user.email_confirmation_token = uuid.uuid4()
-#         user.save()
-#         confirmation_link = f'http://127.0.0.1:8000/confirm-email/{user.email_confirmation_token}/'
-#         send_mail(
-#             'Подтверждение электронной почты',
-#             f'Пожалуйста, подтвердите вашу регистрацию, перейдя по следующей ссылке: {confirmation_link}',
-#             settings.DEFAULT_FROM_EMAIL,
-#             [email],
-#             fail_silently=False,
-#         )
+class RegisterView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        # username = request.data.get('username')
+        # password = request.data.get('password')
+        # user = User.objects.create(email=email, username=username)
+        # user.set_password(password)
+        # # user.email_confirmation_token = uuid.uuid4()
+        # user.save()
+        # # confirmation_link = f'http://127.0.0.1:8000/confirm-email/{user.email_confirmation_token}/'
+        send_mail(
+            'Подтверждение электронной почты',
+            f'Пожалуйста, подтвердите вашу регистрацию, перейдя по следующей ссылке: ',
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+            fail_silently=False,
+        )
 
-#         return Response({
-#             'detail': 'Пожалуйста, проверьте свою почту для подтверждения регистрации.'
-#         }, status=status.HTTP_201_CREATED)
+        return Response({
+            'detail': 'Пожалуйста, проверьте свою почту для подтверждения регистрации.'
+        }, status=status.HTTP_201_CREATED)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -205,7 +215,7 @@ class AdviceViewSet(viewsets.ModelViewSet):
     queryset = Advice.objects.all()
     serializer_class = AdviceSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_posted']
+    filterset_fields = ['is_posted', 'category']
 
     @action(detail=False)
     def personal(self, request):
@@ -232,10 +242,61 @@ class AdviceViewSet(viewsets.ModelViewSet):
         personal_serializer = AdviceSerializer(random_advices, many=True, context={'request': request})
         print(random_advices)
         return Response(personal_serializer.data)
+    
+    @action(detail=False)
+    def personal_vector(self, request):
+        user_plans = UserPlan.objects.filter(user=self.request.user)
+        habits_title = []
+        for plan in user_plans:
+            habits = UserHabit.objects.filter(plan=plan)
+            for habit in habits:
+                habit_title = habit.habit.title
+                habits_title.append(habit_title)
+        advices = Advice.objects.all()
+        advices_text = []
+        for advice in advices:
+            advices_text.append(advice.description)
+        vector = TfidfVectorizer()
+        print(advices_text, habits_title)
+        a_matrix = vector.fit_transform(advices_text).toarray()
+        habits_matrix = vector.transform(habits_title).toarray()
+        
+        print("a_matrix shape:", a_matrix) 
+         # Формат (количество документов advices_text, количество признаков)
+        print("habits_matrix shape:", habits_matrix)  # Формат (количество документов habits_title, количество признаков)
+        similar = cosine_similarity(a_matrix, habits_matrix)
+        similar_indices = similar.argsort()[0][::-1]
+        print("Рекомендуемые советы:")
+        for index in similar_indices:
+            print(f"- {advices_text[index]}")
+
+    @action(detail=False)
+    def search(self, request):
+        query = request.GET.get('q', '')
+        print(connection.vendor) 
+        print(query)
+        advices = []
+        if query:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                        SELECT a.title FROM eco_advice a
+                        JOIN advice_search fts ON a.title = fts.title
+                        WHERE advice_search MATCH %s
+                    """, [query])
+                advice_titles = [row[0] for row in cursor.fetchall()]
+                print(advice_titles)
+                advices = Advice.objects.filter(title__in=advice_titles)
+                print(advices)
+                advices_serializer = AdviceSerializer(advices, many=True, context={'request': request})
+                return Response(advices_serializer.data)
+    
+
 
 class GuideViewSet(viewsets.ModelViewSet):
     queryset = Guide.objects.all()
     serializer_class = GuideSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['is_posted', 'category']
 
 class FavoriteViewSet(viewsets.ModelViewSet):
     queryset = Favorite.objects.all()
@@ -255,9 +316,10 @@ class FavoriteViewSet(viewsets.ModelViewSet):
                 if favorite_serializer.data['advice'] == request.data['advice']:
                     return Response({'title': 'Совет уже добавлен'}, status=status.HTTP_400_BAD_REQUEST)
                     break
-                if favorite_serializer.data['guide'] == request.data['guide']:
-                    return Response({'title': 'Руководство уже добавлено'}, status=status.HTTP_400_BAD_REQUEST)
-                    break
+                if request.data['guide']:
+                    if favorite_serializer.data['guide'] == request.data['guide']:
+                        return Response({'title': 'Руководство уже добавлено'}, status=status.HTTP_400_BAD_REQUEST)
+                        break
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -268,18 +330,24 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         serializer = FavoriteSerializer(favorites, many=True, context={'request': request})
         return Response(serializer.data)
     
-    # @action(detail=False)
-    # def advices(self, request):
-    #     advices = Favorite.objects.filter(favorite_type='A')
-    #     serializer = FavoriteSerializer(advices, many=True, context={'request': request})
-    #     return Response(serializer.data)
+    @action(detail=False)
+    def advices(self, request):
+        advices = Favorite.objects.filter(favorite_type='A')
+        serializer = FavoriteSerializer(advices, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=False)
+    def guides(self, request):
+        guides = Favorite.objects.filter(favorite_type='G')
+        serializer = FavoriteSerializer(guides, many=True, context={'request': request})
+        return Response(serializer.data)
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
 
-    # def get_queryset(self):
-    #     return Event.objects.filter(user=self.request.user)
+    def get_queryset(self):
+        return Event.objects.filter(user=self.request.user)
 
 @authentication_classes([JWTAuthentication])
 @api_view(['POST'])
@@ -287,5 +355,46 @@ def logout_view(request):
     if request.method == 'POST':
         logout(request)
         return Response({'message': 'Success'})
-
     
+class GroupMemberViewSet(viewsets.ModelViewSet):
+    queryset = GroupMember.objects.all()
+    serializer_class = GroupMemberSerializer  
+
+    def perform_destroy(self, instance):
+        if instance.group.members.count() == 2:
+            instance.group.delete()
+        instance.delete()
+        
+
+class UserGroupViewSet(viewsets.ModelViewSet):
+    queryset = UserGroup.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return UserGroupSerializer  
+        elif self.request.method == 'POST':
+            return UserGroupCreateSerializer 
+        return super().get_serializer_class() 
+
+    def get_queryset(self):
+        queryset = super().get_queryset().prefetch_related('members')  
+
+        for group in queryset:
+            members = list(group.members.all())
+            sorted_members = sorted(
+                members,
+                key=lambda member: member.member_stat.first().points if member.member_stat.exists() else 0,
+                reverse=True
+            )
+            group.members.set(sorted_members)   
+        return queryset.filter(members__user=self.request.user)
+        
+    def create(self, request, *args, **kwargs):
+        serializer = UserGroupSerializer(data=request.data)
+        if serializer.is_valid():
+            user_group = UserGroup.objects.create(title = serializer.validated_data['title'])
+            group_members = serializer.validated_data.get('members', [])
+            for group_member in group_members:
+                GroupMember.objects.create(user=group_member['user'], group=user_group, is_confirm=group_member['is_confirm'])
+            return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
