@@ -34,7 +34,7 @@ export default {
 
 </script>
 
-<style>
+<style scoped>
 .modal-guide{
   right: 0;
   bottom: 0;

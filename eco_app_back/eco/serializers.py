@@ -18,7 +18,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'url', 'email', 'is_active', 'role', 'username' ,'password', ]
+        fields = ['id', 'url', 'email', 'is_active', 'role', 'username' ,'password','want_organization' ]
         extra_kwargs = {
             'password': {'write_only': True},
             # 'role': {'required': True}
@@ -36,6 +36,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             instance.set_password(password)
         instance.save()
 
+        UserStat.objects.create(user = instance)
 
         return instance
 
@@ -139,6 +140,19 @@ class AchievementSerializer(serializers.HyperlinkedModelSerializer):
         model = Achievement
         fields = ['url', 'id', 'title', 'description', 'icon']
 
+class TaskSerializer(serializers.HyperlinkedModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super(TaskSerializer, self).__init__(*args, **kwargs)
+        request = self.context.get('request')
+        if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
+            self.Meta.depth = 0
+        else:
+            self.Meta.depth = 1
+
+    class Meta:
+        model = Task
+        fields = '__all__'
+
 class ChallengeSerializer(serializers.HyperlinkedModelSerializer):
     start_date = serializers.DateField(format='%d.%m.%Y')
     finish_date = serializers.DateField(format='%d.%m.%Y')
@@ -153,20 +167,9 @@ class ChallengeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Challenge
-        fields = ['url', 'id', 'title', 'category', 'description', 'tasks', 'goal', 'achievement', 'status', 'start_date', 'finish_date']
+        fields = ['url', 'id', 'title', 'category', 'description', 'tasks', 'goal', 'achievement', 'status', 'start_date', 'finish_date', 'this_week', 'this_week_date']
 
-class TaskSerializer(serializers.HyperlinkedModelSerializer):
-    def __init__(self, *args, **kwargs):
-        super(TaskSerializer, self).__init__(*args, **kwargs)
-        request = self.context.get('request')
-        if request and (request.method == 'POST' or request.method == 'PUT' or request.method == 'PATCH'):
-            self.Meta.depth = 0
-        else:
-            self.Meta.depth = 1
 
-    class Meta:
-        model = Task
-        fields = '__all__'
 
 class UserTaskSerializer(serializers.HyperlinkedModelSerializer):
     def __init__(self, *args, **kwargs):

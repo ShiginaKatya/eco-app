@@ -1,5 +1,5 @@
 <template>
-    <nav class="sidebar_menu">
+    <nav class="sidebar_menu" :style="getBurgerOpen()">
       <ul class="menu_list">
         <li class="menu_profile">
           <router-link class="menu_link" to="/profile">
@@ -9,6 +9,7 @@
               <p class="profile_email">{{user.email}}</p>
             </div> 
           </router-link>
+          <button v-if="burgerMenu" @click="closeMenu()" class="close"></button>
         </li>
         <li class="menu_group">действия</li>
         <li class="menu_item" v-for="item in topMenu" :key="item.id">
@@ -30,7 +31,6 @@
           </router-link>
         </li>
       </ul>
-
     </nav>
 </template>
 
@@ -55,11 +55,11 @@ export default {
             })
             .catch((err) => {
               console.log(err)
-        
-            })
-              
+            })   
         }})
-
+  },
+  props: {
+    burgerMenu: Boolean
   },
   data() {
     return {
@@ -85,6 +85,19 @@ export default {
           'font-weight': '500',
         }
       }
+    },
+    getBurgerOpen(){
+      console.log(this.burgerMenu)
+      if (this.burgerMenu){
+        return {
+          'z-index': 1000,
+          'display': 'flex',
+          'position': 'fixed',
+        }
+      }
+    },
+    closeMenu(){
+      this.$emit('close');
     },
     async logout() {
       await axiosInstance
@@ -122,6 +135,15 @@ export default {
   width: 270px;
   border-radius: 8px;
   border-right: 1px solid lightgray;
+  background-color: white;
+
+}
+@media screen and (max-width: 767px){
+  .sidebar_menu{
+    display: none;
+  }
+}
+@media screen and (max-width: 1024px) and (min-width: 768px){
 
 }
 .menu_list{
@@ -132,7 +154,13 @@ export default {
 }
 .menu_profile{
   border-bottom: 1px solid lightgray;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   /* padding: 10px 15px; */
+}
+.close{
+  margin: 12px 16px;
 }
 .menu_logout{
   border-top: 1px solid lightgray;
@@ -163,7 +191,7 @@ export default {
 .menu_profile .menu_link{
   display: flex;
   gap: 24px;
-  justify-content: flex-starts;
+  justify-content: flex-start;
   align-items: center;
 }
 .profile_picture{

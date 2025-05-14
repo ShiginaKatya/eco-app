@@ -26,8 +26,19 @@ from django.db import connection
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, SAFE_METHODS, BasePermission
+from django.utils import timezone
 
+class IsOrganization(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role.title == 'Организация'
 
+class IsAdminOrReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        else:
+            return request.user.is_staff
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()
@@ -36,6 +47,35 @@ class RoleViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['want_organization']
+
+    def partial_update(self, request, pk=None):
+        user = get_object_or_404(User, pk=pk)
+        serializer = UserSerializer(user, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            if ('want_organization' in request.data) and (request.data['want_organization'] == False):
+                if 'role' in request.data:
+                    send_mail(
+                        'Ваша учетная запись была изменена. Eco Green Life',
+                        f'Аккаунт теперь представляет собой организацию. Можете воспользоваться предоставленным функционалом',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=False,
+                    )
+                else:
+                    send_mail(
+                        'Заявка на создание аккаунта организации была отменена. Eco Green Life',
+                        f'Можете повторить попытку или уточнить проблему по почте отправителя',
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        fail_silently=False,
+                    )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
+                
+                
 
 class RegisterView(APIView):
     def post(self, request):
@@ -102,6 +142,7 @@ class UserPlanViewSet(viewsets.ModelViewSet):
 class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
     serializer_class = AchievementSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 class UserAchievementViewSet(viewsets.ModelViewSet):
     queryset = UserAchievement.objects.all()
@@ -139,10 +180,32 @@ class UserHabitViewSet(viewsets.ModelViewSet):
 class ChallengeViewSet(viewsets.ModelViewSet):
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['this_week']
+
+
+    def get_queryset(self):
+        challenges = Challenge.objects.all()
+        for challenge in challenges:
+            challenge.get_effective_status()
+        return challenges
+    
+    def partial_update(self, request, pk=None):
+        challenge = get_object_or_404(Challenge, pk=pk)
+        serializer = ChallengeSerializer(challenge, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            if ('this_week' in request.data) and (request.data['this_week'] == True):
+                challenge.this_week_date = timezone.now()
+                challenge.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 class UserChallengeViewSet(viewsets.ModelViewSet):
     queryset = UserChallenge.objects.all()
@@ -203,6 +266,7 @@ class UserTaskViewSet(viewsets.ModelViewSet):
 class LevelViewSet(viewsets.ModelViewSet):
     queryset = Level.objects.all()
     serializer_class = LevelSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 class UserStatViewSet(viewsets.ModelViewSet):
     queryset = UserStat.objects.all()
@@ -258,14 +322,11 @@ class AdviceViewSet(viewsets.ModelViewSet):
             advices_text.append(advice.description)
         vector = TfidfVectorizer()
         print(advices_text, habits_title)
-        a_matrix = vector.fit_transform(advices_text).toarray()
+        advice_matrix = vector.fit_transform(advices_text).toarray()
         habits_matrix = vector.transform(habits_title).toarray()
-        
-        print("a_matrix shape:", a_matrix) 
-         # Формат (количество документов advices_text, количество признаков)
-        print("habits_matrix shape:", habits_matrix)  # Формат (количество документов habits_title, количество признаков)
-        similar = cosine_similarity(a_matrix, habits_matrix)
-        similar_indices = similar.argsort()[0][::-1]
+        # habit_av = habits_matrix.mean(axis=0)
+        similar = cosine_similarity(habits_matrix, advice_matrix)
+        similar_indices = similar.argsort()[0][-3:][::-1]
         print("Рекомендуемые советы:")
         for index in similar_indices:
             print(f"- {advices_text[index]}")
@@ -278,11 +339,7 @@ class AdviceViewSet(viewsets.ModelViewSet):
         advices = []
         if query:
             with connection.cursor() as cursor:
-                cursor.execute("""
-                        SELECT a.title FROM eco_advice a
-                        JOIN advice_search fts ON a.title = fts.title
-                        WHERE advice_search MATCH %s
-                    """, [query])
+                cursor.execute("SELECT eco_advice.title  FROM eco_advice JOIN advice_search fts ON eco_advice.title = fts.title WHERE advice_search MATCH %s", [query])
                 advice_titles = [row[0] for row in cursor.fetchall()]
                 print(advice_titles)
                 advices = Advice.objects.filter(title__in=advice_titles)
@@ -345,6 +402,7 @@ class FavoriteViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+    permission_classes = [IsOrganization]
 
     def get_queryset(self):
         return Event.objects.filter(user=self.request.user)

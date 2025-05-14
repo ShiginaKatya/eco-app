@@ -114,8 +114,9 @@ button:focus-visible {
 .main_header{
   height: 75px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  gap: 16px;
+  justify-content: start;
+  align-items: center;
 }
 h2{
   font-family: Golos Text, sans-serif;
@@ -132,4 +133,44 @@ h2{
 
 ul{
   list-style-type: none;
+}
+
+.burger{
+  display: none;
+  width: 16px;
+  height: 16px;
+  background-color: transparent;
+  border: none;
+  background-image: url('burger.svg');
+  background-size: cover;
+}
+.close{
+  width: 16px;
+  height: 16px;
+  background-color: transparent;
+  border: none;
+  background-image: url('close.svg');
+  background-size: cover;
+}
+@media screen and (max-width: 767px) {
+  .burger{
+    display: block;
+  }
+}
+table{
+  font-size: 14px;
+  border-collapse: collapse;
+}
+th, td {
+  border: 1px solid lightgray;
+  padding: 8px;
+}
+table .eco-button {
+  background-color: white;
+  border: 1px solid lightgray;
+}
+.table_buttons{
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }

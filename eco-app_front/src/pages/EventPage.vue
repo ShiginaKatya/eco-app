@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <aside class="sidebar">
-      <ProfileMenu></ProfileMenu>
+      <ProfileMenu :burgerMenu="openingMenu" @close="closeMenu()"></ProfileMenu>
     </aside>
     <main class="main">
       <AddEvent v-if="showModal" :user="user" @close="closeModal"></AddEvent>

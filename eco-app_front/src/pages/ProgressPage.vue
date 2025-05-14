@@ -1,10 +1,11 @@
 <template>
   <div class="page">
     <aside class="sidebar">
-        <ProfileMenu></ProfileMenu>
+        <ProfileMenu :burgerMenu="openingMenu" @close="closeMenu()"></ProfileMenu>
     </aside>
     <main class="main">
       <section class="main_header">
+        <button class="burger" @click="openMenu()" :style="setStyle()"></button>
         <h1 class="header_title">Прогресс</h1>
       </section>
       <section class="main_sections">
@@ -21,7 +22,7 @@
               <p class="stat_info_text">Текущий уровень</p>
               <p class="stat_info">{{userStat.level.title}}</p>
             </div>
-            <p class="stat_block stat_info_text"><span class="stat_info">{{userStat.achievements_count}}</span> количество наград</p>
+            <p class="stat_block stat_info_text">Количество наград <span class="stat_info number">{{userStat.achievements_count}}</span></p>
           </div>
         </section>
         <section class="main_achievements">
@@ -54,29 +55,13 @@ export default {
     },
     setup() {
       const series = ref([])
-      const labels = ref([])
       onMounted(async () => {
-
-        // if (Object.keys(user.value).length === 0) {
-        //   console.log(window.localStorage.getItem('userId'))
-        //   await axiosInstance
-        //     .get(`users/${window.localStorage.getItem('userId')}/`)
-        //     .then((res) => {
-        //       console.log(res.data)
-        //       store.commit('setUser', res.data)
-        //     })
-        //     .catch((err) => {
-        //       console.log(err)
-        
-        //     })   
-        // }
         await axiosInstance
           .get('/userstats/')
           .then(res => {
             console.log(res.data[0])
             series.value = [((res.data[0].points/res.data[0].next_level.min_points)*100).toFixed()]
             store.commit('setUserStat', res.data)
-           
           })
           .catch((err) => {
             console.log(err)
@@ -90,6 +75,7 @@ export default {
       return {
         user: user,
         userStats: userStats,
+        openingMenu: false,
         next_level: '',
         chartOptions: {
             width: '100px',
@@ -130,6 +116,19 @@ export default {
       }
     },
     methods: {
+      openMenu(){
+        this.openingMenu = true
+      },
+      closeMenu(){
+        this.openingMenu = false
+      },
+      setStyle(){
+        if (this.openingMenu){
+          return {
+            display: 'none'
+          }
+        }
+      }
 
     }
 }
@@ -139,16 +138,22 @@ export default {
 .apexcharts-xaxis-label, 
 .apexcharts-yaxis-label, 
 .apexcharts-title {
-    font-family: 'Raleway', sans-serif !important; /* Используйте ваш шрифт */
+    font-family: 'Raleway', sans-serif !important;
 }
 .main_userinfo{
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-
   justify-content: flex-start;
   gap: 16px;
   align-items: stretch;
 }
+@media screen and (max-width: 1024px){
+  .main_userinfo{
+    grid-template-columns: 2fr 1fr;
+  }
+
+}
+
 .userinfo_next-level{
   display: flex;
   gap: 4px;
@@ -227,9 +232,11 @@ export default {
   font-weight: 500;
   color: black;
 }
+.number {
+  font-size: 24px;
+}
 .stat{
   display: grid;
-  flex-direction: column;
   gap: 16px;
   height: 100%;
 }
@@ -244,5 +251,38 @@ export default {
   text-align: center;
   font-weight: 500;
   border-radius: 50%;
+}
+
+@media screen and (max-width: 600px){
+  .main_userinfo{
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .userinfo_next-level{
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    justify-content: center;
+  }
+  .stat{
+    grid-template-columns: repeat(2, 1fr);
+    grid-column: span 2;
+  }
+}
+@media screen and (max-width: 370px) {
+  .userinfo_next-level{
+    grid-template-columns: 1fr ;
+    align-items: center;
+    justify-content: center;
+  }
+  .next-level_chart{
+    margin: 0 auto;
+  }
+  .next-level_text{
+    align-items: flex-end;
+  }
+  .next-level_description{
+    text-align: end;
+  }
 }
 </style>

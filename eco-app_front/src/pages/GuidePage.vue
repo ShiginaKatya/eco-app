@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <aside class="sidebar">
-      <ProfileMenu></ProfileMenu>
+      <ProfileMenu :burgerMenu="openingMenu" @close="closeMenu()"></ProfileMenu>
     </aside>
     <main class="main">
       <section class="main_header"> 
@@ -33,11 +33,13 @@
               </li>
             </ul>
             <ul class="advice_list">
-              <li class="advice" v-for="guide in guides" :key="guide.id">
-                <button @click="addFavorite(guide.url)" class="advice_button" :style="favoriteStyle(guide.url)"></button>
+              <li class="guide" v-for="guide in guides" :key="guide.id">
                 <img :src="guide.icon" alt="" class="advice_picture">
                 <div class="advice_text">
-                  <p class="advice_title">{{guide.title}}</p>
+                  <div class="guide_title">
+                    <p>{{guide.title}}</p>
+                    <button @click="addFavorite(guide.url)" class="guide_button" :style="favoriteStyle(guide.url)"></button>
+                  </div>
                   <p class="advice_category">{{guide.category?.title}}</p>
                   <p class="advice_description">{{guide.annotation}}</p>
                   <button @click="showGuide(guide.url)" class="eco-button guide-button">Подробнее</button>
@@ -250,10 +252,14 @@ export default {
 </script>
 
 <style scoped>
-.advice_title{
+.guide_title{
   font-weight: 500;
   font-family: Golos Text, sans-serif;
   font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 .advice_description{
   font-size: 12px;
@@ -272,13 +278,20 @@ export default {
   border-radius: 4px;
 
 }
-.advice{
+.guide{
   padding: 16px;
   border: 1px solid lightgray;
   border-radius: 8px;
   gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
 }
-.advice_button{
+@media screen and (max-width: 1200px) {
+  .guide{
+    grid-template-columns: 1fr;
+  }
+}
+.guide_button{
   width: 24px;
   height: 24px ;
   border: none;
@@ -286,7 +299,6 @@ export default {
   background-image: url('heart.svg');
   background-position: center;
   background-size: cover;
-  align-self: flex-end;
 }
 .advice_button:hover{
   background-image: url('favorite_hover.svg');

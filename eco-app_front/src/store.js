@@ -1,4 +1,5 @@
 import { createStore } from 'vuex'
+import axiosInstance from './http'
 
 export const store = createStore({
   state() {
@@ -25,6 +26,9 @@ export const store = createStore({
       favorites: [],
       guides: [],
       send_guides: [],
+      send_organizations: [],
+      tasks: [],
+      week_challenge: []
 
     }
   },
@@ -98,7 +102,29 @@ export const store = createStore({
     setGuides(state, guides) {
       state.guides = guides
     },
+    setSendOrganizations(state, send_organizations) {
+      state.send_organizations = send_organizations
+    },
+    setTasks(state, tasks) {
+      state.tasks = tasks
+    },
+    setWeekChallenge(state, week_challenge) {
+      state.week_challenge = week_challenge
+    },
 
-}
+},
+  actions: {
+    async loadUser({commit}){
+      await axiosInstance
+        .get(`users/${window.localStorage.getItem('userId')}`)
+        .then(res => {
+          commit('setUser', res.data); 
+          console.log(res.data)
+        })
+        .catch((err) => {
+          console.log(err)
+        })
+    }
+  }
 }
 )

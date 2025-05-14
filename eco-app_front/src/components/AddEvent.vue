@@ -77,7 +77,9 @@ export default {
   height: fit-content;
   margin: auto;
   position: fixed;
-  padding: 12px 16px;
+  padding: 16px;
+  display: grid;
+  gap: 16px;
 }
 p, li{
   font-size: 16px;
@@ -104,7 +106,7 @@ p, li{
 .modal_form{
   display: flex;
   flex-direction: column;
-  padding: 10px 0;
+  gap: 8px;
   justify-content: center;
   align-items: left;
 }
@@ -126,8 +128,6 @@ p, li{
   font-size: 12px;
   color: grey;
   font-weight: 500;
-  padding-top: 8px ;
-  padding-bottom: 4px;
 }
 .option-title {
   font-weight: 400;
@@ -143,7 +143,7 @@ p, li{
   font-size: 14px;
 }
 .eco-button{
-  margin: 10px auto;
+  margin: 0 auto;
 }
 .habits{
   margin-top: 6px;

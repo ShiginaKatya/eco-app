@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <aside class="sidebar">
-      <ProfileMenu></ProfileMenu>
+      <ProfileMenu :burgerMenu="openingMenu" @close="closeMenu()"></ProfileMenu>
     </aside>
     <main class="main">
       <section class="main_header"> 
@@ -48,8 +48,8 @@ import axios from 'axios'
 import DetailGuide from '../components/DetailGuide.vue';
 
 const user = computed(() => store.state.user) 
-const guides = computed(() => store.state.guides)
-const advices = computed(() => store.state.advices)
+// const guides = computed(() => store.state.guides)
+// const advices = computed(() => store.state.advices)
 const favorites = computed(() => store.state.favorites)
 
 

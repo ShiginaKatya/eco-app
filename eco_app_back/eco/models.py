@@ -4,6 +4,8 @@ from .managers import UserManager
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from django.db import connection
+from django.utils import timezone
+from datetime import timedelta
 # import random
 # import uuid
 
@@ -23,6 +25,7 @@ class User(AbstractUser):
     username = models.CharField(verbose_name='Имя', max_length=255)
     email = models.EmailField(verbose_name='Email', unique=True)
     role = models.ForeignKey(verbose_name='Роль', to=Role, on_delete=models.PROTECT, null=True)
+    want_organization = models.BooleanField(verbose_name='Заявка на организацию', default=False)
     # is_email_confirmed = models.BooleanField(default=False)
     # email_confirmation_token = models.CharField(default=uuid.uuid4, editable=False, max_length=255)
 
@@ -38,9 +41,7 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
     
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        UserStat.objects.create(user=self)
+    
 
 
 class Category(models.Model):
@@ -58,7 +59,8 @@ class Habit(models.Model):
     category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.PROTECT, null=True)
     description = models.TextField(verbose_name='Описание', null=True)
     difficulty_level = models.PositiveIntegerField(verbose_name='Уровень сложности')
-    
+    this_day = models.BooleanField(verbose_name='Привычка недели', default=False)
+
     class Meta:
         verbose_name = 'Эко-привычка'
         verbose_name_plural = 'Эко-привычки'
@@ -129,7 +131,7 @@ class UserHabit(models.Model):
 class Achievement(models.Model):
     title = models.CharField(verbose_name='Наименование награды', max_length=255)
     description = models.TextField(verbose_name='Описание', null=True)
-    icon = models.ImageField(verbose_name='Иконка награды', upload_to='achievements')
+    icon = models.ImageField(verbose_name='Иконка награды', upload_to='achievements', null=True)
     points_required = models.PositiveIntegerField(verbose_name='Требуемые баллы')
 
     class Meta:
@@ -164,12 +166,29 @@ class Challenge(models.Model):
     title = models.CharField(verbose_name='Название челленджа', max_length=255)
     goal = models.CharField(verbose_name='Цель', max_length=255)
     description = models.TextField(verbose_name='Описание', null=True)
-    achievement = models.ForeignKey(verbose_name='Награда', to=Achievement, on_delete=models.PROTECT)
-    category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.PROTECT)
+    achievement = models.ForeignKey(verbose_name='Награда', to=Achievement, on_delete=models.PROTECT, null=True)
+    category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.PROTECT, null=True)
     start_date = models.DateField(verbose_name='Дата начала', null=True)
     finish_date = models.DateField(verbose_name='Дата окончания', null=True)
     status = models.BooleanField(verbose_name='Доступен', default=True)
-    tasks = models.ManyToManyField(verbose_name='Задания', to=Task)
+    tasks = models.ManyToManyField(verbose_name='Задания', to=Task, related_name='challenges')
+    this_week = models.BooleanField(verbose_name='Челлендж недели', default=False)
+    this_week_date = models.DateTimeField(null=True, blank=True)
+    
+    def get_effective_status(self):
+        if self.this_week:
+            if self.this_week_date:
+                if timezone.now() - self.this_week_date >= timedelta(weeks=1):
+                    self.this_week = False
+                    self.this_week_date = None
+                    self.save(update_fields=['this_week', 'this_week_date'])
+                    return False
+                else:
+                    return True
+            else:
+                return False
+        else:
+            return False
 
     class Meta:
         verbose_name = 'Челлендж'

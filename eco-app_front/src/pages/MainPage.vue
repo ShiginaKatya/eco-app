@@ -76,15 +76,15 @@
     min-width: 320px;
 }
 .main_header{
-    margin: 10px;
+    margin: 16px;
 }
 .header_menu, .footer_menu{
     display: flex;
     justify-content: space-between;
-    border: 1px solid grey;
-    border-radius: 25px;
+    border: 1px solid lightgrey;
+    border-radius: 8px;
     align-items: center;
-    padding: 10px;
+    padding: 16px;
 
 }
 ul{
@@ -93,10 +93,9 @@ ul{
 
 .menu_list{
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    gap: 5em;
-    margin: 0;
+    gap: 32px;
 }
 .main_banner{
     background-image: url("/banner_1.jpg");
@@ -104,7 +103,7 @@ ul{
     background-position: center; 
     background-repeat: no-repeat; 
     background-size: cover;
-    border-radius: 25px;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     justify-content: end;
@@ -124,18 +123,18 @@ ul{
     max-width: 400px;
     font-size: 24px;
 }
-.eco-button{
+/* .eco-button{
     color: black;
     display: block;
-    padding: 10px 20px;
+    padding: 8px 16px;
     text-align: center;
-    background-color: #B8D86B;
-    border-radius: 25px;
+    background-color: #;
+    border-radius: 8px;
     width: fit-content;
     font-size: 14px;
     font-family: "Golos Text", sans-serif;
     font-weight: normal;
-}
+} */
 .advices_list{
     display: flex;
     justify-content: space-between;

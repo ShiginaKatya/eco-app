@@ -1,25 +1,29 @@
 <template>
   <div class="page">
     <aside class="sidebar">
-      <ProfileMenu></ProfileMenu>
+      <ProfileMenu :burgerMenu="openingMenu" @close="closeMenu()"></ProfileMenu>
     </aside>
     <main class="main">
       <section class="main_header"> 
         <h1 class="header_title">Cоветы</h1>
       </section>
       <section class="main_sections">
-        <div v-if="user.role?.title === 'Администратор'">
-          <ul>
-            <li v-for="advice in send_advices" :key="advice?.id">
+        <button v-if="user.role?.title === 'Администратор'" class="eco-button" @click="showAddModal()">Добавить совет</button>
+        <AddAdvice v-if="adviceModal" @close="closeModal()"></AddAdvice>
+        <section class="send_advices" v-if="user.role?.title === 'Администратор'">
+          <p class="advice_title personal">Заявки от пользователей</p>
+          <ul class="send_list">
+            <li class="send_advice" v-for="advice in send_advices" :key="advice?.id">
               <p class="advice_title">{{advice.title}}</p>
-              <p class="advice_title">{{advice.author.username}}</p>
+              <p class="advice_title">{{advice.author?.username}}</p>
               <p class="advice_description">{{advice.description}}</p>
-              <button @click="postAdvice(advice.id)" class="eco-button">Опубликовать</button>
+              <button @click="showChangeModal(advice.url)" class="eco-button">Просмотреть</button>
+              <AddAdvice v-if="adviceUrl === advice.url" :advice="advice" @close="closeModal()"></AddAdvice>
             </li>
           </ul>
-        </div>
-        <p class="advice_title personal">Стоит обратить внимание</p>
-        <ul class="personal">
+        </section>
+        <p v-if="user.role?.title !== 'Администратор'" class="advice_title personal">Стоит обратить внимание</p>
+        <ul v-if="user.role?.title !== 'Администратор'" class="personal">
           <li class="advice" v-for="advice in personal_advices" :key="advice?.id">
             <button @click="addFavorite(advice.url)" class="advice_button"></button>
             <img :src="advice.icon" alt="" class="advice_picture">
@@ -52,11 +56,16 @@
                   <p class="advice_title">{{advice.title}}</p>
                   <p class="advice_category">{{advice.category?.title}}</p>
                   <p class="advice_description">{{advice.description}}</p>
+                  <div v-if="user.role?.title === 'Администратор'" class="button_group">
+                    <button class="eco-button" @click="showChangeModal(advice.url)">Изменить</button>
+                    <AddAdvice v-if="adviceUrl === advice.url" :advice="advice" @close="closeModal()"></AddAdvice>
+                    <button class="eco-button" @click="deleteAdvice(advice.url)">Удалить</button>
+                  </div>
                 </div>
               </li>
             </ul>
           </section>
-          <div class="advice_add modal">
+          <div v-if="user.role?.title !== 'Администратор'" class="advice_add modal">
             <div class="modal_title">
               <p class="title">Поделитесь своим советом</p>
             </div>
@@ -70,7 +79,6 @@
           </div>
         </section>
       </section>
-      
     </main>
   </div>
 </template>
@@ -81,6 +89,7 @@ import {store} from '../store.js'
 import { onMounted, computed } from 'vue';
 import axiosInstance from '../http.js'
 import axios from 'axios'
+import AddAdvice from '../components/AddAdvice.vue';
 
 const user = computed(() => store.state.user) 
 const advices = computed(() => store.state.advices)
@@ -93,6 +102,7 @@ const favorites = computed(() => store.state.favorites)
 export default {
     components: {
       ProfileMenu,
+      AddAdvice
     },
     setup() {
       onMounted(async () => {
@@ -114,15 +124,15 @@ export default {
           .catch((err) => {
             console.log(err)
           })
-        await axiosInstance
-          .get('/advices/personal')
-          .then(res => {
-            console.log(res.data)
-            store.commit('setPersonalAdvices', res.data)
-          })
-          .catch((err) => {
-            console.log(err)
-          })
+        // await axiosInstance
+        //   .get('/advices/personal_vector')
+        //   .then(res => {
+        //     console.log(res.data)
+        //     store.commit('setPersonalAdvices', res.data)
+        //   })
+        //   .catch((err) => {
+        //     console.log(err)
+        //   })
         await axiosInstance
           .get('/advices?is_posted=False')
           .then(res => {
@@ -153,13 +163,25 @@ export default {
         description: '',
         categories: categories,
         searchQuery: '',
-        favorites: favorites
+        favorites: favorites,
+        adviceModal: false,
+        adviceUrl: null
       }
     },
     computed:{
      
     },
     methods: {
+      showAddModal(){
+        this.adviceModal = true
+      },
+      showChangeModal(advice){
+        this.adviceUrl = advice
+      },
+      closeModal(){
+        this.adviceUrl = null,
+        this.adviceModal = false
+      },
       async addFavorite(adviceUrl){
         let favorite = this.favorites.find(favorite => favorite.advice.url === adviceUrl)
         if (favorite){
@@ -247,7 +269,7 @@ export default {
         }
       },
       favoriteStyle(adviceUrl){
-        if (this.favorites.find(favorite => favorite.advice.url === adviceUrl)){
+        if (this.favorites.find(favorite => favorite.advice?.url === adviceUrl)){
           return {
             backgroundImage : "url('favorite_hover.svg')"
           }
@@ -315,6 +337,7 @@ export default {
   grid-template-columns: 1fr 1fr 1fr;
   gap: 16px;
 }
+
 
 .personal .advice{
   background-color: #C5FDC5;
@@ -390,6 +413,19 @@ export default {
   color: black;
 
 }
+.send_advices{
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.send_list{
+  display: grid;
+  gap: 16px;
+}
+.send_advice{
+  display: flex;
+  gap: 16px;
+}
 .form-button{
   margin: 0 auto;
 }
@@ -397,6 +433,18 @@ export default {
   display: flex;
   gap: 16px;
   align-items: center;
+}
+@media screen and (max-width: 1024px) {
+  .section_advices{
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .advice_list{
+    grid-template-columns: 1fr;
+  }
+  .advices_all{
+    grid-column: span 1;
+  }
+  
 }
 
 </style>

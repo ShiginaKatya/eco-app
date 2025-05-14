@@ -19,7 +19,11 @@
     <p class="modal_text">Даты проведения</p>
     <p class="date">{{ challenge.start_date }} - {{ challenge.finish_date }}</p>
     <div class="button">
-      <button class="eco-button" @click="addChallenge()" :disabled="ifDisabled(challenge)">{{ challengeStatus(challenge) }}</button>
+      <button class="eco-button" v-if="user.role?.title !== 'Администратор'" @click="addChallenge()" :disabled="ifDisabled(challenge)">{{ challengeStatus(challenge) }}</button>
+      <div class="button_group" v-else>
+        <button class="eco-button" @click="weekChallenge()"><span v-if="challenge.this_week">Выбран недельным</span><span v-else>Выбрать недельным</span></button>
+        <button class="eco-button delete" @click="deleteChallenge()">Удалить</button>
+      </div>
     </div>
   </div>
 </template>
@@ -28,6 +32,7 @@
 import {store} from '../store.js'
 import { onMounted, computed } from 'vue';
 import axiosInstance, { API_URL } from '../http.js'
+import AddChallenge from './AddChallenge.vue';
 
 // const habits = computed(() => store.state.habits)
 // const plan = computed(() => store.state.plan)
@@ -47,7 +52,7 @@ export default {
     return {
       userchallenge: userchallenge,
       userchallenges: userchallenges,
-      userStatus: true
+      userStatus: true,
 
   }},
   methods: {
@@ -106,6 +111,28 @@ export default {
         return false
       }
     },
+    weekChallenge(){
+      axiosInstance
+        .patch(`/challenges/${this.challenge.id}/`,{
+          this_week: true
+        })
+        .then(res => {
+          console.log(res.data)
+        })
+        .catch((err) => {
+          console.log(err)
+        }) 
+    },
+    deleteChallenge(){
+      axiosInstance
+        .delete(`/challenges/${this.challenge.id}/`)
+        .then(res => {
+          console.log(res.data)
+        })
+        .catch((err) => {
+          console.log(err)
+        }) 
+    }
     
   }
 }
@@ -165,6 +192,15 @@ p, li{
 }
 .goal{
   font-weight: 500;
+}
+.button_group{
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.button_group .delete{
+  background-color: white;
+  border: 1px solid lightgray;
 }
 .task{
   padding: 8px;

@@ -7,7 +7,7 @@
       <section class="main_header">
         <h1 class="header_title">Трекер эко-привычек</h1>
       </section>
-      <section class="main_sections">
+      <section class="main_sections" v-if="user.role?.title !== 'Администратор'">
         <AddPlanModal v-if="showModal" @close="closeModal"></AddPlanModal>
         <button class="eco-button create" @click="openModal()">Создать план</button>
         <div class="plan_list">
@@ -44,6 +44,32 @@
           </div>
         </div>
       </section>
+      <section class="main_sections" v-else>
+        <button class="eco-button">Добавить привычку</button>
+        <table>
+          <thead>
+            <tr>
+              <th>Привычка</th>
+              <th>Категория</th>
+              <th>Баллы</th>
+              <th>Привычка дня</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="habit in habits" :key="habit.id">
+              <td>{{ habit.title }}</td>
+              <td>{{ habit.category?.title }}</td>
+              <td>{{ habit.difficulty_level }}</td>
+              <td><span v-if="habit.this_day">Выбрана</span><span v-else>Не выбрана</span></td>
+              <td class="table_buttons">
+                <button class="eco-button">Изменить</button>
+                <button class="eco-button">Удалить</button>
+              </td>
+            </tr>
+          </tbody> 
+        </table>
+      </section>
     </main>
   </div>
 </template>
@@ -55,8 +81,9 @@ import { onMounted, computed } from 'vue';
 import axiosInstance from '../http.js'
 import axios from 'axios'
 
-const user = computed(() => store.state.user) 
+ 
 const plans = computed(() => store.state.plans)
+const habits = computed(() => store.state.habits)
 // const achievementNotify = computed(() => store.state.achievement)
 
 export default {
@@ -65,46 +92,51 @@ export default {
       AddPlanModal,
     },
     setup() {
+      const user = computed(() => store.state.user) 
+      const loadUser = async () => {
+        await store.dispatch('loadUser')
+
+      }
       onMounted(async () => {
-        if (Object.keys(user.value).length === 0) {
-          console.log(window.localStorage.getItem('userId'))
+        await loadUser()
+        if (user.value && user.value.role.title === 'Администратор') {
           await axiosInstance
-            .get(`users/${window.localStorage.getItem('userId')}/`)
-            .then((res) => {
+            .get('/habits')
+            .then(res => {
               console.log(res.data)
-              store.commit('setUser', res.data)
+              store.commit('setHabits', res.data)
             })
             .catch((err) => {
               console.log(err)
-        
             })
-              
         }
-        await axiosInstance
-          .get('/userplans')
-          .then(res => {
-            console.log(res.data)
-            store.commit('setPlans', res.data)
-          })
-          .catch((err) => {
-            console.log(err)
-          }) 
-        
+        if (user.value && user.value.role.title !== 'Администратор'){
+          await axiosInstance
+            .get('/userplans')
+            .then(res => {
+              console.log(res.data)
+              store.commit('setPlans', res.data)
+            })
+            .catch((err) => {
+              console.log(err)
+            }) 
+        }
       })
-
+      return {
+        user
+      }
     },
     data() {
       return {
-        user: user,
         plans: plans,
         showModal: false,
         achievementNotify: null,
         answers: {},
         questionUrl: {},
         openPlan: null,
-        isChecked: {}
-
-        
+        isChecked: {},
+        habits: habits
+ 
       }
     },
     methods: {
@@ -209,9 +241,10 @@ export default {
 .plan_list{
   display: grid;
   gap: 16px;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 400px));
 
 }
+
 .plan_habit{
   display: flex;
   gap: 16px;
@@ -246,7 +279,7 @@ export default {
   margin-bottom: 8px;
 }
 .question_input{
-  width: 300px;
+  width: max-content;
   height: 30px;
   font-family: Raleway, sans-serif;
   border-radius: 4px;
