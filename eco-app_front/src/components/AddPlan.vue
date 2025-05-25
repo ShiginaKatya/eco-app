@@ -20,10 +20,10 @@
           placeholder=""
           label="title"
           track-by="title"
-          :preselect-first="true"
+          :preselect-first="false"
         >
         <template #selection="{ values, isOpen }">
-          <span class="multiselect__single" v-if="values.length" v-show="!isOpen">{{ values.length }} options selected</span>
+          <span class="multiselect__single" v-if="values.length" v-show="!isOpen"> Выбрано: {{ values.length }} </span>
         </template>
           <template #option="{ option }">
             <div class="custom-option">
@@ -115,8 +115,9 @@ export default {
       
 }}
 </script>
-<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+<!-- <style src="vue-multiselect/dist/vue-multiselect.min.css"></style> -->
 <style scoped>
+
 .modal{
   right: 0;
   bottom: 0;
@@ -126,13 +127,16 @@ export default {
   border: 1px solid lightgray;
   border-radius: 8px;
   max-width: 400px;
-  height: fit-content;
   margin: auto;
   position: fixed;
-  padding: 12px 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: fit-content;
 }
 p, li{
-  font-size: 16px;
+  font-size: 14px;
 }
 .modal_title{
   display: flex;
@@ -146,8 +150,8 @@ p, li{
   font-family: Golos Text, sans-serif;
 }
 .close{
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   background-color: transparent;
   border: none;
   background-image: url('close.svg');
@@ -156,14 +160,14 @@ p, li{
 .modal_form{
   display: flex;
   flex-direction: column;
-  padding: 10px 0;
+  gap: 8px;
   justify-content: center;
   align-items: left;
 }
 .modal_input{
   width: 100%;
   height: 40px;
-  font-size: 16px;
+  font-size: 14px;
   font-family: Raleway, sans-serif;
   border-radius: 4px;
   border: 1px solid lightgray;
@@ -175,27 +179,23 @@ p, li{
 }
 
 .modal_text{
-  font-size: 12px;
+  font-size: 14px;
   color: grey;
   font-weight: 500;
-  padding-top: 8px ;
-  padding-bottom: 4px;
 }
 .option-title {
   font-weight: 400;
   color: black;
   font-size: 14px;
 }
-.multiselect__element:hover {
-  background-color: lightblue !important;
-}
+
 .option-category {
   color: #888; 
   font-weight: 300;
   font-size: 14px;
 }
-.eco-button{
-  margin: 10px auto;
+.modal .eco-button{
+  margin: 0 auto;
 }
 .habits{
   margin-top: 6px;

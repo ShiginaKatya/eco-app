@@ -296,49 +296,11 @@ export default {
 
 
 
-.modal{
-  right: 0;
-  bottom: 0;
-  left: 0;
-  top: 0;
-  background: white;
-  border: lightgray 1px solid;
-  border-radius: 8px;
-  max-width: 300px;
-  height: fit-content;
-  margin: auto;
-  position: fixed;
-}
-.modal_title{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-}
+
 .body_description{
   text-align: center;
   color: gray;
   font-size: 14px;
-}
-.close{
-  width: 12px;
-  height: 12px;
-  background-color: transparent;
-  border: none;
-  background-image: url('close.svg');
-  background-size: cover;
-}
-.modal_img{
-  width: 60px;
-  height: 60px;
-}
-.modal_body{
-  display: flex;
-  margin: 20px auto;
-  flex-direction: column;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
 }
 .body_title{
   font-weight: 500;

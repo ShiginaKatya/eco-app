@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.db import connection
 from django.utils import timezone
 from datetime import timedelta
+import pickle
 # import random
 # import uuid
 
@@ -26,7 +27,7 @@ class User(AbstractUser):
     email = models.EmailField(verbose_name='Email', unique=True)
     role = models.ForeignKey(verbose_name='Роль', to=Role, on_delete=models.PROTECT, null=True)
     want_organization = models.BooleanField(verbose_name='Заявка на организацию', default=False)
-    # is_email_confirmed = models.BooleanField(default=False)
+    is_email_confirmed = models.BooleanField(default=False)
     # email_confirmation_token = models.CharField(default=uuid.uuid4, editable=False, max_length=255)
 
     USERNAME_FIELD = 'email'
@@ -171,11 +172,11 @@ class Challenge(models.Model):
     start_date = models.DateField(verbose_name='Дата начала', null=True)
     finish_date = models.DateField(verbose_name='Дата окончания', null=True)
     status = models.BooleanField(verbose_name='Доступен', default=True)
-    tasks = models.ManyToManyField(verbose_name='Задания', to=Task, related_name='challenges')
+    tasks = models.ManyToManyField(verbose_name='Задания', to=Task)
     this_week = models.BooleanField(verbose_name='Челлендж недели', default=False)
     this_week_date = models.DateTimeField(null=True, blank=True)
     
-    def get_effective_status(self):
+    def get_week(self):
         if self.this_week:
             if self.this_week_date:
                 if timezone.now() - self.this_week_date >= timedelta(weeks=1):
@@ -190,6 +191,12 @@ class Challenge(models.Model):
         else:
             return False
 
+    def get_status(self):
+        if timezone.now().date() > self.finish_date:
+            self.status = False
+            self.save(update_fields=['status'])
+
+
     class Meta:
         verbose_name = 'Челлендж'
         verbose_name_plural = 'Челленджи'
@@ -203,7 +210,7 @@ class Challenge(models.Model):
 
 class UserChallenge(models.Model):
     challenge = models.ForeignKey(verbose_name='Челлендж', to=Challenge, on_delete=models.PROTECT)
-    user = models.ForeignKey(verbose_name='Пользователь', to=User, on_delete=models.PROTECT)
+    user = models.ForeignKey(verbose_name='Пользователь', to=User, on_delete=models.PROTECT,)
     status = models.BooleanField(verbose_name='Статус выполнения', default=False)
 
     class Meta:
@@ -318,12 +325,13 @@ class Advice(models.Model):
 #     with connection.cursor() as cursor:
 #         cursor.execute("DELETE FROM advice_search WHERE rowid = %s", [instance.id])
 
+
 class Guide(models.Model):
     title = models.CharField(verbose_name='Руководство', max_length=255)
     description = models.TextField(verbose_name='Описание', null=True)
     annotation = models.TextField(verbose_name='Важное', null=True)
     icon = models.ImageField(verbose_name='Изображение для руководства', upload_to='guides')
-    category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(verbose_name='Категория', to=Category, on_delete=models.CASCADE, null=True)
     is_posted = models.BooleanField(verbose_name='Выложен', default=True)
     author = models.ForeignKey(verbose_name='Автор', to=User, on_delete=models.CASCADE, null=True)
 
@@ -369,6 +377,11 @@ class Event(models.Model):
     report_image = models.ImageField(verbose_name='Изображение для отчета', upload_to='reports', null=True)
     status = models.CharField(verbose_name='Статус мероприятия', choices=STATUS_CHOICE, default='Назначено', max_length=255)
     user = models.ForeignKey(verbose_name='Организатор мероприятия', to=User, on_delete=models.CASCADE)
+
+    def get_status(self):
+        if timezone.now().date() > self.event_date:
+            self.status = 'Завершено'
+            self.save(update_fields=['status'])
     
     class Meta:
         verbose_name = 'Мероприятие'
@@ -402,3 +415,15 @@ class GroupMember(models.Model):
     @property
     def member_stat(self):
        return UserStat.objects.filter(user=self.user)
+
+class VectorStore(models.Model):
+    title = models.CharField(max_length=255, verbose_name='Тип хранилища')
+    record = models.BinaryField()
+
+    def save_vec(self, store):
+        self.record = pickle.dumps(store)
+        self.save()
+
+    def get_vec(self):
+        return pickle.loads(self.record)
+

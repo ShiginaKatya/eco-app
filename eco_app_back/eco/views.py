@@ -25,9 +25,17 @@ from django.shortcuts import render
 from django.db import connection
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import OneHotEncoder
+from scipy.sparse import hstack
 import numpy as np
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, SAFE_METHODS, BasePermission
 from django.utils import timezone
+from .utils import personal_advices
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.shortcuts import redirect
+
 
 class IsOrganization(BasePermission):
     def has_permission(self, request, view):
@@ -49,6 +57,39 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['want_organization']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            confirm_token = default_token_generator.make_token(user)
+            confirm_link = f"{request.build_absolute_uri('/api/users/confirm_email')}?uid={uid}&confirm_token={confirm_token}"
+
+            send_mail(
+                'Регистрация в веб-приложении ECO Green Free',
+                f'Перейдите по ссылке для подтверждения регистрации: {confirm_link}',
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=True,
+            )
+            return Response({'title': 'Пользователь создан, подтвердите email.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'])
+    def confirm_email(self, request):
+        uidb64 = request.query_params.get('uid')
+        confirm_token = request.query_params.get('confirm_token')
+        if uidb64 and confirm_token:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            if default_token_generator.check_token(user, confirm_token):
+                user.is_email_confirmed = True
+                user.save()
+                return redirect('http://localhost:5173/login/')
+            return Response({'title': 'Некорректная или устаревшая ссылка.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'title': 'Некорректная или устаревшая ссылка.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def partial_update(self, request, pk=None):
         user = get_object_or_404(User, pk=pk)
@@ -180,7 +221,7 @@ class UserHabitViewSet(viewsets.ModelViewSet):
 class ChallengeViewSet(viewsets.ModelViewSet):
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    # permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['this_week']
 
@@ -188,7 +229,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         challenges = Challenge.objects.all()
         for challenge in challenges:
-            challenge.get_effective_status()
+            challenge.get_week()
+            challenge.get_status()
         return challenges
     
     def partial_update(self, request, pk=None):
@@ -222,8 +264,8 @@ class UserChallengeViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             challenges = UserChallenge.objects.filter(user=request.user, status=False)
             for challenge in challenges:
-                challenge_serializer = UserChallengeSerializer(challenge, context={'request': request})
-                if challenge_serializer.data['challenge'] == request.data['challenge']:
+                # challenge_serializer = UserChallengeSerializer(challenge, context={'request': request})
+                if challenge.challenge.id == serializer.validated_data['challenge'].id:
                     return Response({'title': 'Челлендж уже добавлен'}, status=status.HTTP_400_BAD_REQUEST)
                     break
             self.perform_create(serializer)
@@ -281,55 +323,44 @@ class AdviceViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['is_posted', 'category']
 
-    @action(detail=False)
-    def personal(self, request):
-        user_plans = UserPlan.objects.filter(user=self.request.user)
-        habits_category = []
-        for plan in user_plans:
-            habits = UserHabit.objects.filter(plan=plan)
-            for habit in habits:
-                habit_category = habit.habit.category.title
-                habits_category.append(habit_category)
-        user_challenges = UserChallenge.objects.filter(user = self.request.user)
-        challenges_category = []
-        for challenge in user_challenges:
-            challenge_category = challenge.challenge.category.title
-            challenges_category.append(challenge_category)
-        user_categories = habits_category + challenges_category
-        categories = Category.objects.all()
-        use_categories = {}
-        for category in categories:
-            use_categories[category] = user_categories.count(category.title)
-        use_categories = sorted(use_categories.items(), key=lambda item: item[1])[:2]
-        personal_advices = Advice.objects.filter(Q(category = use_categories[0][0]) | Q(category = use_categories[1][0]))
-        random_advices = personal_advices.order_by('?')[:3]
-        personal_serializer = AdviceSerializer(random_advices, many=True, context={'request': request})
-        print(random_advices)
-        return Response(personal_serializer.data)
+    # @action(detail=False)
+    # def personal(self, request):
+    #     user_plans = UserPlan.objects.filter(user=self.request.user)
+    #     habits_category = []
+    #     for plan in user_plans:
+    #         habits = UserHabit.objects.filter(plan=plan)
+    #         for habit in habits:
+    #             habit_category = habit.habit.category.title
+    #             habits_category.append(habit_category)
+    #     user_challenges = UserChallenge.objects.filter(user = self.request.user)
+    #     challenges_category = []
+    #     for challenge in user_challenges:
+    #         challenge_category = challenge.challenge.category.title
+    #         challenges_category.append(challenge_category)
+    #     user_categories = habits_category + challenges_category
+    #     categories = Category.objects.all()
+    #     use_categories = {}
+    #     for category in categories:
+    #         use_categories[category] = user_categories.count(category.title)
+    #     use_categories = sorted(use_categories.items(), key=lambda item: item[1])[:2]
+    #     personal_advices = Advice.objects.filter(Q(category = use_categories[0][0]) | Q(category = use_categories[1][0]))
+    #     random_advices = personal_advices.order_by('?')[:3]
+    #     personal_serializer = AdviceSerializer(random_advices, many=True, context={'request': request})
+    #     print(random_advices)
+    #     return Response(personal_serializer.data)
     
     @action(detail=False)
     def personal_vector(self, request):
-        user_plans = UserPlan.objects.filter(user=self.request.user)
-        habits_title = []
-        for plan in user_plans:
-            habits = UserHabit.objects.filter(plan=plan)
-            for habit in habits:
-                habit_title = habit.habit.title
-                habits_title.append(habit_title)
-        advices = Advice.objects.all()
-        advices_text = []
-        for advice in advices:
-            advices_text.append(advice.description)
-        vector = TfidfVectorizer()
-        print(advices_text, habits_title)
-        advice_matrix = vector.fit_transform(advices_text).toarray()
-        habits_matrix = vector.transform(habits_title).toarray()
-        # habit_av = habits_matrix.mean(axis=0)
-        similar = cosine_similarity(habits_matrix, advice_matrix)
-        similar_indices = similar.argsort()[0][-3:][::-1]
-        print("Рекомендуемые советы:")
-        for index in similar_indices:
-            print(f"- {advices_text[index]}")
+        based_advices, opposite_advices  = personal_advices(self.request.user)
+        if based_advices and opposite_advices:
+            based_serializer = AdviceSerializer(based_advices, many=True, context={'request': request})
+            opposite_serializer = AdviceSerializer(opposite_advices, many=True, context={'request': request})
+            return Response({'based_advices': based_serializer.data,'opposite_advices': opposite_serializer.data}, status=status.HTTP_200_OK)
+        else:
+            random_advices = Advice.objects.order_by('?')[:3]
+            random_serializer = AdviceSerializer(random_advices, many=True, context={'request': request})
+            return Response({'random_advices': random_serializer.data}, status=status.HTTP_200_OK)
+
 
     @action(detail=False)
     def search(self, request):
@@ -369,12 +400,13 @@ class FavoriteViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             favorites = Favorite.objects.filter(user=request.user)
             for favorite in favorites:
-                favorite_serializer = FavoriteSerializer(favorite, context={'request': request})
-                if favorite_serializer.data['advice'] == request.data['advice']:
-                    return Response({'title': 'Совет уже добавлен'}, status=status.HTTP_400_BAD_REQUEST)
-                    break
+                # favorite_serializer = FavoriteSerializer(favorite, context={'request': request})
+                if request.data['advice']:
+                    if favorite.advice.id == serializer.validated_data['advice'].id:
+                        return Response({'title': 'Совет уже добавлен'}, status=status.HTTP_400_BAD_REQUEST)
+                        break
                 if request.data['guide']:
-                    if favorite_serializer.data['guide'] == request.data['guide']:
+                    if favorite.guide.id == serializer.validated_data['guide'].id:
                         return Response({'title': 'Руководство уже добавлено'}, status=status.HTTP_400_BAD_REQUEST)
                         break
             self.perform_create(serializer)
@@ -405,8 +437,23 @@ class EventViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOrganization]
 
     def get_queryset(self):
-        return Event.objects.filter(user=self.request.user)
-
+        events = Event.objects.filter(user=self.request.user).order_by('event_date')
+        for event in events:
+            event.get_status()
+        return events
+    
+    def partial_update(self, request, pk=None):
+        event = get_object_or_404(Event, pk=pk)
+        serializer = EventSerializer(event, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            if 'event_date' in request.data and event.event_date != serializer.validated_data['event_date']:
+                event.status = 'Перенесено'
+            else:
+                event.status = 'Назначено'
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
 @authentication_classes([JWTAuthentication])
 @api_view(['POST'])
 def logout_view(request):
@@ -436,7 +483,6 @@ class UserGroupViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset().prefetch_related('members')  
-
         for group in queryset:
             members = list(group.members.all())
             sorted_members = sorted(
@@ -448,11 +494,12 @@ class UserGroupViewSet(viewsets.ModelViewSet):
         return queryset.filter(members__user=self.request.user)
         
     def create(self, request, *args, **kwargs):
-        serializer = UserGroupSerializer(data=request.data)
+        serializer = UserGroupCreateSerializer(data=request.data)
         if serializer.is_valid():
             user_group = UserGroup.objects.create(title = serializer.validated_data['title'])
             group_members = serializer.validated_data.get('members', [])
             for group_member in group_members:
+                print(group_member['user'])
                 GroupMember.objects.create(user=group_member['user'], group=user_group, is_confirm=group_member['is_confirm'])
             return Response(status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

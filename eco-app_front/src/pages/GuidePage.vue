@@ -256,7 +256,8 @@ export default {
   font-weight: 500;
   font-family: Golos Text, sans-serif;
   font-size: 16px;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
@@ -317,6 +318,7 @@ export default {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+
 .advice{
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -417,5 +419,47 @@ export default {
   gap: 16px;
   align-items: center;
 }
+@media screen and (max-width: 1023px) and (min-width: 768px) {
+  .section_advices{
+    grid-template-columns: 1fr;
+  }
+  .advice_add{
+    grid-row: 1;
+  }
+}
+@media screen and (max-width: 767px) and (min-width: 500px){
+  .section_advices{
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .advice_add{
+    grid-column: span 2;
+    grid-row: 1;
+  }
+  .advices_all{
+    grid-row: 2;
+    grid-column: span 3;
+  }
+  .advice_list{
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .guide{
+    grid-column: span 2;
+  }
+}
+@media screen and (max-width: 500px){
+  .section_advices{
+    grid-template-columns: 1fr;
+  }
+  .advice_add{
+    grid-row: 1;
+  }
+  .advices_all{
+    grid-row: 2;
+  }
+  .advice_list{
+    grid-template-columns: 1fr;
+  }
+}
+
 
 </style>

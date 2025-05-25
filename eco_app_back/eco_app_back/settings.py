@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-@rp9f)o%crce9y_1!+0qowg8e7(0sjxc!20udd%c8%u869yv_l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [ "http://localhost:5173", '127.0.0.1']
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -56,6 +56,8 @@ INSTALLED_APPS = [
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,  
+    'BLACKLIST_AFTER_USE': True, 
 }
 
 MIDDLEWARE = [
@@ -68,6 +70,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# SECURE_CONTENT_TYPE_NOSNIFF: True
+# SECURE_HSTS_SECONDS: True
+# SECURE_SSL_REDIRECT = True
 
 ROOT_URLCONF = 'eco_app_back.urls'
 

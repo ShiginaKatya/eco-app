@@ -14,20 +14,8 @@
         <button v-if="user.role?.title === 'Пользователь'" class="eco-button" @click="sendChange()">Сделать аккаунт организации</button>
       </section>
       <section v-if="user.role?.title !== 'Администратор'" class="main_groups">
-        <div class="modal" v-if="formGroup">
-          <div class="modal_title">
-            <p class="title_text">Создать группу</p>
-            <button class="close" @click="closeModal"></button>
-          </div>
-          <input type="text" v-model="group.title">
-          <input type="email" v-model="email">
-          <button class="eco-button" @click="addUser()">Добавить пользователя</button>
-          <p v-for="member in members" :key="member.id">
-            {{ member.member.url }}
-          </p>
-          <button class="eco-button" @click="createGroup()">Cоздать группу</button>
-        </div>
         <button class="eco-button" @click="openGroup()">Создать группу</button>
+        <AddGroup v-if="formGroup" :user="user" @close="closeModal()"></AddGroup>
       </section>
       <ul v-if="user.role?.title !== 'Администратор'" class="main_usergroups">
         <li class="usergroup" v-for="group in groups" :key="group.id">
@@ -37,20 +25,27 @@
             <div v-for="member in group.members" :key="member.id">
               <div class="button_group" v-if="member.user.url === user.url">
                 <button class="eco-button" @click="confirmMember(member.url)">Принять</button>
-                <button class="eco-button white" @click="deleteMember(member.url)">Отклонить</button>
+                <button class="eco-button exit" @click="deleteMember(member.url)">Отклонить</button>
               </div>
             </div>
           </div>
           <div v-else class="usergroup_group">
             <ul class="group_list">
-              <li class="group_member" v-for="member in group.members" :key="member.id">
-                <p class="member_name">{{ member.user.username }}</p>
-                <p class="member_points">{{ member.member_stat[0]?.points }}</p>
+              <li class="group_member" v-for="member in group.members" :style="getStyle(member)" :key="member.id">
+                <div class="member_user">
+                  <img src="/profile_group.png" alt="">
+                  <p class="member_name">{{ member.user.username }}</p>
+                </div>
+                <p v-if="member.is_confirm" class="member_points">{{ member.member_stat[0]?.points }}</p>
+                <p v-else class="member_status">Подтверждение...</p>
               </li>
             </ul>
+            <button  class="eco-button exit">Выйти из группы</button>
           </div>
+         
         </li>
       </ul>
+       <p v-if="user.role?.title !== 'Администратор'" class="title_text">Последние действия</p>
       <section v-if="user.role?.title !== 'Администратор'" class="main_actions">
         <div class="actions_plan">
           <p class="latest_type">план</p>
@@ -98,6 +93,7 @@ import {useStore} from 'vuex'
 import { onMounted, computed } from 'vue';
 import axiosInstance from '../http.js'
 import axios from 'axios'
+import AddGroup from '../components/AddGroup.vue';
 
 
 const userchallenges = computed(() => store.state.userchallenges)
@@ -113,6 +109,7 @@ const roles = computed(() => store.state.roles)
 export default {
     components: {
       ProfileMenu,
+      AddGroup
     },
     setup() {
       const user = computed(() => store.state.user) 
@@ -143,55 +140,54 @@ export default {
               console.log(err)
             }) 
         }
-
-        
-        // await axiosInstance
-        //   .get('/userplans/latest')
-        //   .then(res => {
-        //     console.log(res.data)
-        //     store.commit('setPlans', res.data)
-        //   })
-        //   .catch((err) => {
-        //     console.log(err)
-        //   }) 
-        // await axiosInstance
-        //   .get('/userchallenges/latest')
-        //   .then(res => {
-        //     console.log(res.data)
-        //     store.commit('setUserChallenges', res.data)
-        //   })
-        //   .catch((err) => {
-        //     console.log(err)
-        //   }) 
-        // await axiosInstance
-        //   .get('/userstats/')
-        //   .then(res => {
-        //     console.log(res.data)
-        //     store.commit('setUserStat', res.data)
-        //   })
-        //   .catch((err) => {
-        //     console.log(err)
-        //   }) 
-        // await axiosInstance
-        //   .get('/favorites/latest')
-        //   .then(res => {
-        //     console.log(res.data)
-        //     store.commit('setFavorites', res.data)
-        //   })
-        //   .catch((err) => {
-        //     console.log(err)
-        //   }) 
-        // await axiosInstance
-        //   .get('/groups')
-        //   .then(res => {
-        //     console.log(res.data)
-        //     store.commit('setGroups', res.data)
-        //   })
-        //   .catch((err) => {
-        //     console.log(err)
-        //   }) 
-      }  
-    )
+        if (user.value && user.value.role.title !== 'Администратор'){
+          await axiosInstance
+            .get('/userplans/latest')
+            .then(res => {
+              console.log(res.data)
+              store.commit('setPlans', res.data)
+            })
+            .catch((err) => {
+              console.log(err)
+            }) 
+          await axiosInstance
+            .get('/userchallenges/latest')
+            .then(res => {
+              console.log(res.data)
+              store.commit('setUserChallenges', res.data)
+            })
+            .catch((err) => {
+              console.log(err)
+            }) 
+          await axiosInstance
+            .get('/userstats/')
+            .then(res => {
+              console.log(res.data)
+              store.commit('setUserStat', res.data)
+            })
+            .catch((err) => {
+              console.log(err)
+            }) 
+          await axiosInstance
+            .get('/favorites/latest')
+            .then(res => {
+              console.log(res.data)
+              store.commit('setFavorites', res.data)
+            })
+            .catch((err) => {
+              console.log(err)
+            }) 
+          await axiosInstance
+            .get('/groups')
+            .then(res => {
+              console.log(res.data)
+              store.commit('setGroups', res.data)
+            })
+            .catch((err) => {
+              console.log(err)
+            }) 
+        } 
+      })
       return {
         user
       }
@@ -219,6 +215,27 @@ export default {
     computed:{
     },
     methods: {
+      getStyle(member){
+        if (member.is_confirm){
+          if (member.user.url === this.user.url){
+            return {
+              'backgroundColor': '#E0FFE0',
+              'borderColor': '#2E8B57'
+            }
+          }
+          else{
+            return {
+              'borderColor': '#2E8B57'
+            }
+          }
+  
+        }
+        else{
+          return {
+            'borderColor': 'lightgray'
+          }
+        }
+      },
       challengeProcent(tasks){
         if (tasks){
           let t = 0
@@ -246,27 +263,6 @@ export default {
             console.log(err)
           })
         this.formGroup = true
-      },
-      addUser(){
-        const member = this.users.find(user => user.email === this.email)
-        this.members.push({member: member, is_confirm: false})
-        console.log(this.members)
-      },
-      async createGroup(){
-        this.members.push({member: this.user, is_confirm: true})
-        this.group.members = this.members.map(member => ({
-          user: member.member.url,
-          is_confirm: member.is_confirm
-        }))
-        console.log(this.group)
-        await axiosInstance
-          .post('/groups/', this.group)
-          .then(res => {
-            console.log(res.data)
-          })
-          .catch((err) => {
-            console.log(err)
-          })
       },
       async confirmMember(memberUrl){
         await axios
@@ -348,8 +344,8 @@ export default {
 } */
 
 .main_usergroups{
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 .main_profile{
@@ -362,7 +358,7 @@ export default {
 }
 .profile_image{
   width: 80px;
-  border: 1px solid gray;
+  border: 1px solid lightgray;
   padding: 50px;
   border-radius: 50%;
   background-color: grey;
@@ -374,67 +370,18 @@ export default {
   grid-template-rows: repeat(2, 1fr);
 }
 .usergroup_confirm{
-  display: grid;
+  display: flex;
   gap: 8px;
+  align-items: center;
 }
+
 .usergroup{
   padding: 16px;
   border: 1px solid lightgray;
   border-radius: 8px;
   display: grid;
-  gap: 8px;
+  gap: 16px;
 
-}
-.modal{
-  right: 0;
-  bottom: 0;
-  left: 0;
-  top: 0;
-  background: white;
-  border: 1px solid lightgray;
-  border-radius: 8px;
-  max-width: fit-content;
-  height: fit-content;
-  max-height: 100vh;
-  margin: auto;
-  position: fixed;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-p, li{
-  font-size: 14px;
-}
-.modal_title{
-  display: flex;
-  justify-content: space-between;
-  align-self: stretch;
-  align-items: center;
-}
-.title_text{
-  font-size: 16px;
-  font-weight: 500;
-  font-family: Golos Text, sans-serif;
-}
-.modal_text{
-  font-size: 12px;
-  color: grey;
-  font-weight: 500;
-  padding-top: 8px ;
-  padding-bottom: 4px;
-}
-.modal_input{
-  width: 100%;
-  height: 40px;
-  font-size: 16px;
-  font-family: Raleway, sans-serif;
-  border-radius: 4px;
-  border: 1px solid lightgray;
-  padding: 8px;
 }
 
 .actions_challenges{
@@ -444,7 +391,7 @@ p, li{
 
 }
 .actions_plan{
-  border: 1px solid gray;
+  border: 1px solid lightgray;
   border-radius: 8px;
   grid-row: span 2;
   grid-column: span 2;
@@ -454,7 +401,7 @@ p, li{
   justify-content: space-between;
 }
 .challenges_latest{
-  border: 1px solid gray;
+  border: 1px solid lightgray;
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -463,7 +410,7 @@ p, li{
   justify-content: space-between;
 
 }
-.latest_title{
+.latest_title, .title_text{
   font-weight: 500;
   font-size: 16px;
   font-family: 'Golos Text', sans-serif;
@@ -477,6 +424,11 @@ p, li{
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+}
+.exit{
+  align-self: end;
+  background-color: white;
+  border: 1px solid lightgray;
 }
 
 @media screen and (max-width: 1024px) and (min-width: 768px){
@@ -493,11 +445,15 @@ p, li{
 }
 .list_latest{
   padding: 16px;
-  border: 1px solid gray;
+  border: 1px solid lightgray;
   border-radius: 8px;
   display: grid;
   gap: 8px;
 
+}
+.member_points{
+  font-size: 16px;
+  font-weight: 500;
 }
 .info_item{
   font-size: 16px;
@@ -534,6 +490,36 @@ p, li{
 .confirm_buttons{
   display: flex;
   gap: 8px;
+}
+.group_list{
+  display: grid;
+  gap: 8px;
+}
+.group_member{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid lightgray;
+  border-radius: 4px;
+  padding: 8px;
+  gap: 16px;
+}
+.member_status{
+  font-size: 14px;
+  color: gray;
+}
+.member_user{
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.button_group{
+  display: flex;
+  gap: 8px;
+}
+.usergroup_group{
+  display: grid;
+  gap: 16px;
 }
 
 </style>

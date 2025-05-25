@@ -287,7 +287,6 @@ export default {
 <style scoped>
 
 .main_sections{
-  margin-top: 16px;
   display: grid;
   grid-template-columns: 2fr 1fr;
   flex: 1;
@@ -427,6 +426,7 @@ input[type="checkbox"]:checked {
   padding: 8px 16px;
 
 }
+
 .progress_count{
   text-align: right;
   font-size: 14px;
@@ -442,7 +442,7 @@ input[type="checkbox"]:checked {
     grid-template-columns: repeat(1, 1fr);
   }
 }
-@media screen and (max-width: 900px) and (min-width: 768px) {
+@media screen and (max-width: 900px) and (min-width: 769px) {
   .main_sections{
     grid-template-columns: repeat(3, 1fr);
   }
@@ -453,19 +453,39 @@ input[type="checkbox"]:checked {
     grid-template-columns: repeat(1, 1fr);
   }
 }
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 768px) and (min-width: 500px) {
   .main_sections{
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     grid-template-rows: 1fr 1fr;
   }
   .main_userchallenges{
     grid-column: span 2;
     grid-row: 1;
   }
+  .main_challenges{
+    grid-row: 2;
+    grid-column: span 3;
+  }
   .challenges_list{
-    grid-template-columns: repeat(1, 1fr);
-    grid-row: 2
+    grid-template-columns: 1fr 1fr;
+  }
+
+}
+@media screen  and (max-width:500px){
+  .main_sections{
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+  .main_userchallenges{
+    grid-row: 1;
+  }
+  .main_challenges{
+    grid-row: 2;
+  }
+  .challenges_list{
+    grid-template-columns: 1fr;
   }
 }
+
 
 </style>

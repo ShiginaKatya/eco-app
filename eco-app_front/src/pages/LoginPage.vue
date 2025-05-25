@@ -1,13 +1,19 @@
 <template>
   <div class="login_page">
-    <h2>Вход в профиль</h2>
-    <form class="form" @submit.prevent ="login">
-      <label for="" class="form_label">Email</label>
-      <input  v-model="email" type="email" class="form_input"  />
-      <label for="" class="form_label">Пароль</label>
-      <input v-model="password" type="password" class="form_input" />
-      <button class="eco-button"  type="submit">Войти</button>
-    </form>
+    <header class="header">
+      <p class="logo_text">ECO GREEN LIFE</p>
+      <router-link class="eco-button" to="/register">Назад</router-link>
+    </header>
+    <main class="main">
+      <h2>Вход в профиль</h2>
+      <form class="form" @submit.prevent ="login">
+        <label for="" class="form_label">Email</label>
+        <input  v-model="email" type="email" class="form_input"  />
+        <label for="" class="form_label">Пароль</label>
+        <input v-model="password" type="password" class="form_input" />
+        <button class="eco-button"  type="submit">Войти</button>
+      </form>
+    </main>
   </div>
 </template>
 
@@ -65,14 +71,22 @@ export default {
 
 <style scoped>
 .login_page{
-  margin: auto;
+    margin:  16px auto;
   max-width: 1200px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
-  padding-top: 100px;
+  gap: 16px;
+}
+.header{
+  display: grid;
+  gap: 8px;
+}
+h2{
+  text-align: center;
+}
+.main{
+  margin: auto;
+  gap: 16px;
 }
 .form{
   display: flex;

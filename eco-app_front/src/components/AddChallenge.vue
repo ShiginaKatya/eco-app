@@ -142,7 +142,7 @@ export default {
         }
         if (this.challenge){
           await axiosInstance
-            .patch('/challenges/', {
+            .patch(`/challenges/${this.challenge.id}/`, {
               title: this.title,
               goal: this.goal,
               description: this.description,

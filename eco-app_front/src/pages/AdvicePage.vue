@@ -22,18 +22,46 @@
             </li>
           </ul>
         </section>
-        <p v-if="user.role?.title !== 'Администратор'" class="advice_title personal">Стоит обратить внимание</p>
-        <ul v-if="user.role?.title !== 'Администратор'" class="personal">
-          <li class="advice" v-for="advice in personal_advices" :key="advice?.id">
-            <button @click="addFavorite(advice.url)" class="advice_button"></button>
-            <img :src="advice.icon" alt="" class="advice_picture">
-            <div class="advice_text">
-              <p class="advice_title">{{advice.title}}</p>
-              <p class="advice_category">{{advice.category?.title}}</p>
-              <p class="advice_description">{{advice.description}}</p>
-            </div>
-          </li>
-        </ul>
+        <section class="section_personal" v-if="user.role?.title !== 'Администратор' && personal_advices.random_advices" >
+          <p class="advice_title">Изучайте советы</p>
+          <ul class="personal">
+            <li class="advice" v-for="advice in personal_advices.random_advices" :key="advice?.id">
+              <button @click="addFavorite(advice.url)" class="advice_button"></button>
+              <img :src="advice.icon" alt="" class="advice_picture">
+              <div class="advice_text">
+                <p class="advice_title">{{advice.title}}</p>
+                <p class="advice_category">{{advice.category?.title}}</p>
+                <p class="advice_description">{{advice.description}}</p>
+              </div>
+            </li>
+          </ul>
+        </section>
+        <section class="section_personal" v-if="user.role?.title !== 'Администратор' && personal_advices.based_advices" >
+          <p class="advice_title">Вам может понравиться</p>
+          <ul class="personal">
+            <li class="advice" v-for="advice in personal_advices.based_advices" :key="advice?.id">
+              <button @click="addFavorite(advice.url)" class="advice_button"></button>
+              <img :src="advice.icon" alt="" class="advice_picture">
+              <div class="advice_text">
+                <p class="advice_title">{{advice.title}}</p>
+                <p class="advice_category">{{advice.category?.title}}</p>
+                <p class="advice_description">{{advice.description}}</p>
+              </div>
+            </li>
+          </ul>
+          <p class="advice_title">Стоит также обратить внимание</p>
+          <ul class="personal">
+            <li class="advice" v-for="advice in personal_advices.opposite_advices" :key="advice?.id">
+              <button @click="addFavorite(advice.url)" class="advice_button"></button>
+              <img :src="advice.icon" alt="" class="advice_picture">
+              <div class="advice_text">
+                <p class="advice_title">{{advice.title}}</p>
+                <p class="advice_category">{{advice.category?.title}}</p>
+                <p class="advice_description">{{advice.description}}</p>
+              </div>
+            </li>
+          </ul>
+        </section>
         <section class="section_advices">
           <section class="advices_all">
             <div class="advices_search">
@@ -124,15 +152,15 @@ export default {
           .catch((err) => {
             console.log(err)
           })
-        // await axiosInstance
-        //   .get('/advices/personal_vector')
-        //   .then(res => {
-        //     console.log(res.data)
-        //     store.commit('setPersonalAdvices', res.data)
-        //   })
-        //   .catch((err) => {
-        //     console.log(err)
-        //   })
+        await axiosInstance
+          .get('/advices/personal_vector')
+          .then(res => {
+            console.log(res.data)
+            store.commit('setPersonalAdvices', res.data)
+          })
+          .catch((err) => {
+            console.log(err)
+          })
         await axiosInstance
           .get('/advices?is_posted=False')
           .then(res => {
@@ -310,6 +338,10 @@ export default {
   flex-direction: column;
   gap: 8px;
 }
+.section_personal{
+  display: grid;
+  gap: 16px;
+}
 .advice_button{
   width: 24px;
   height: 24px ;
@@ -434,15 +466,40 @@ export default {
   gap: 16px;
   align-items: center;
 }
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 1024px) and (min-width: 550px) {
   .section_advices{
     grid-template-columns: repeat(2, 1fr);
   }
+  .personal{
+    grid-template-columns: repeat(2, 1fr)
+  }
   .advice_list{
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
   .advices_all{
-    grid-column: span 1;
+    grid-column: span 2;
+    grid-row: 2;
+  }
+  .advice_add{
+    grid-row: 1;
+  }
+  
+}
+@media screen and (max-width: 550px) {
+  .section_advices{
+    grid-template-columns: 1fr;
+  }
+  .personal{
+    grid-template-columns: 1fr
+  }
+  .advice_list{
+    grid-template-columns: 1fr
+  }
+  .advices_all{
+    grid-row: 2;
+  }
+  .advice_add{
+    grid-row: 1;
   }
   
 }

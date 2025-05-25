@@ -1,24 +1,26 @@
 <template>
   <div class="register_page">
-    <h2>Регистрация</h2>
-    <form class="form" @submit.prevent="register">
-      <p class="form_label">Выберите тип Пользователя</p>
-      <fieldset class="radio_group">
-        <label class="group_label"><input type="radio" class="role_radio" v-model="role" :value="1" required>Пользователь</label>
-        <label class="group_label"><input type="radio" class="role_radio" v-model="role" :value="2" required>Организация</label>
-      </fieldset>
-      <label for="" class="form_label">Имя</label>
-      <input v-model="username" type="text" class="form_input">
-      <label for="" class="form_label">Email</label>
-      <input  v-model="email" type="email" class="form_input" />
-      <label for="" class="form_label">Пароль</label>
-      <input v-model="password" type="password" class="form_input" />
-      <input v-model="password_confirm" type="password" class="form_input" />
-      <p>{{ message }}</p>
-      <button class="eco-button" type="submit">Зарегистрироваться</button>
-      <p>Есть аккаунт?</p>
-      <router-link to="/login" class="eco-button">Войти в профиль</router-link>
-    </form>
+    <header class="header">
+      <p class="logo_text">ECO GREEN LIFE</p>
+      <router-link class="eco-button" to="/">Назад</router-link>
+    </header>
+    <main class="main">
+      <h2>Регистрация</h2>
+      <form class="form" @submit.prevent="register">
+        <label for="" class="form_label">Имя</label>
+        <input v-model="username" type="text" class="form_input">
+        <label for="" class="form_label">Email</label>
+        <input  v-model="email" type="email" class="form_input" />
+        <label for="" class="form_label">Пароль</label>
+        <input v-model="password" type="password" class="form_input" />
+        <label for="" class="form_label">Подтверждение пароля</label>
+        <input v-model="password_confirm" type="password" class="form_input" />
+        <p v-if="message">{{ message }}</p>
+        <button class="eco-button" type="submit">Зарегистрироваться</button>
+        <p>Есть аккаунт?</p>
+        <router-link to="/login" class="eco-button">Войти в профиль</router-link>
+      </form>
+    </main>
   </div>
 </template>
 
@@ -48,7 +50,6 @@ export default {
     return {
       email: '',
       username: '',
-      role: '',
       password: '',
       roles: roles,
       password_confirm: '',
@@ -65,42 +66,10 @@ export default {
             email: this.email,
             password: this.password,
             username: this.username,
-            role: this.roles.find(role => role.id === this.role).url
+            role: this.roles.find(role => role.title === 'Пользователь').url
           })
           .then((res) => {
             console.log(res.data)
-            
-          })
-          .catch((err) => {
-            console.log(err)
-          })
-        await axiosInstance
-          .post(`token/`, {
-            email: this.email,
-            password: this.password
-            
-          })
-          .then((res) => {
-            window.localStorage.setItem('access_token', res.data.access)
-            window.localStorage.setItem('refresh_token', res.data.refresh)
-            store.commit('setIsAuthenticated', Boolean(res.data.access))
-          })
-          .catch((err) => {
-            console.log(err)
-          })
-        await axiosInstance
-          .get('users/')
-          .then((res) => {
-            let users = res.data
-            let user = users.find(user => user.email === this.email)
-            window.localStorage.setItem('userId', user.id)
-            if (window.localStorage.getItem('error')) {
-              window.location.href = '/'
-              return
-            } else {
-              window.location.href = 'profile'
-              return
-            }
           })
           .catch((err) => {
             console.log(err)
@@ -117,16 +86,26 @@ export default {
 
 <style scoped>
 .register_page{
-  margin: auto;
+  margin:  16px auto;
   max-width: 1200px;
-  height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
+  gap: 16px;
+}
+.header{
+  display: grid;
+  gap: 8px;
+}
+h2{
+  text-align: center;
+}
+.main{
+  margin: auto;
+  gap: 16px;
 }
 .form{
+  max-width: 400px;
+  min-width: 300px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -139,21 +118,10 @@ export default {
 }
 .form_input{
   height: 30px;
-  padding: 10px;
-  margin-bottom: 10px;
   font-family: inherit;
 }
-.radio_group{
-  border: none;
-  display: flex;
-  gap: 30px;
-}
-.group_label{
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  justify-content: flex-start;
-}
+
+
 .form_label{
   font-size: 14px;
   color: grey;

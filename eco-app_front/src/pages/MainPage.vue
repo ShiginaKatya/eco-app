@@ -1,6 +1,6 @@
 <template>
     <div class="main_page">
-        <header class="main_header">
+        <header class="page_header">
             <nav class="header_menu">
                 <div class="logo">
                     <!-- <img src="" alt=""> -->
@@ -69,15 +69,44 @@
     </div>
 </template>
 
+<script setup>
+import { useHead } from '@vueuse/head'
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "ECO Green Free Экологическое веб-приложение",
+  "description": "Формирование и поддержка пути к экологичному образу жизни и осознанному потреблению",
+  "url": "https://example.com/my-awesome-page"
+}
+
+useHead({
+  title: 'ECO Green Free Экологическое веб-приложение',
+  meta: [
+    { property: 'og:title', content: 'ECO Green Free Экологическое веб-приложение' },
+    { property: 'og:description', content: 'Формирование и поддержка пути к экологичному образу жизни и осознанному потреблению' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:image', content: 'https://example.com/images/awesome.jpg' }
+  ],
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify(jsonLd)
+    }
+  ]
+})
+</script>
+
 <style scoped>
 .main_page{
     margin: 0 auto;
     max-width: 1200px;
     min-width: 320px;
+    display: grid;
+    gap: 16px;
+    padding: 16px;
 }
-.main_header{
-    margin: 16px;
-}
+
 .header_menu, .footer_menu{
     display: flex;
     justify-content: space-between;
@@ -109,9 +138,6 @@ ul{
     justify-content: end;
     gap: 2em;
     padding: 2em;
-}
-.main_section{
-    margin: 10px;
 }
 .main_banner_title{
     color: white;
@@ -170,10 +196,14 @@ ul{
 .habit_group{
     display: flex;
     flex-direction: column;
+    background-image: url("/Frame 56.png");
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-size: cover;
     gap: 20px;
     align-items: center;
     flex-wrap: wrap;
-    max-width: 300px;
+    max-width: 1200px;
     justify-content: center;
     margin: 20px;
     padding-top: 100px;

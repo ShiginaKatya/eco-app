@@ -197,7 +197,7 @@ class UserChallengeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = UserChallenge
-        fields = '__all__'
+        fields = ['id', 'url', 'challenge','status', 'tasks']
 
 class LevelSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

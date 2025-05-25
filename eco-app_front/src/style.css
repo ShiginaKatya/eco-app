@@ -124,6 +124,24 @@ h2{
   font-size: 18px;
 }
 
+.multiselect__option--highlight{
+  background: #C5FDC5 !important;
+}
+.multiselect__option--highlight:after{
+  background: #C5FDC5 !important;
+}
+.multiselect__option--selected{
+  background: #F5F5DC !important;
+}
+.multiselect__option--selected:after{
+  background: #F5F5DC !important;
+}
+.multiselect__single{
+  font-size: 14px !important;
+}
+.multiselect__content-wrapper{
+  max-height: 150px !important;
+}
 
 
 /* #app {

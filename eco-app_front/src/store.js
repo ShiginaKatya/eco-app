@@ -28,7 +28,9 @@ export const store = createStore({
       send_guides: [],
       send_organizations: [],
       tasks: [],
-      week_challenge: []
+      week_challenge: [],
+      favorite_guides: [],
+      favorite_advices: []
 
     }
   },
@@ -110,6 +112,12 @@ export const store = createStore({
     },
     setWeekChallenge(state, week_challenge) {
       state.week_challenge = week_challenge
+    },
+    setFavoriteAdvices(state, favorite_advices) {
+      state.favorite_advices = favorite_advices
+    },
+    setFavoriteGuides(state, favorite_guides) {
+      state.favorite_guides = favorite_guides
     },
 
 },

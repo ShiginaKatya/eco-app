@@ -48,9 +48,9 @@ import axios from 'axios'
 import DetailGuide from '../components/DetailGuide.vue';
 
 const user = computed(() => store.state.user) 
-// const guides = computed(() => store.state.guides)
-// const advices = computed(() => store.state.advices)
-const favorites = computed(() => store.state.favorites)
+const guides = computed(() => store.state.favorite_guides)
+const advices = computed(() => store.state.favorite_advices)
+
 
 
 export default {
@@ -64,7 +64,7 @@ export default {
           .get('/favorites/advices')
           .then(res => {
             console.log(res.data)
-            store.commit('setAdvices', res.data)
+            store.commit('setFavoriteAdvices', res.data)
           })
           .catch((err) => {
             console.log(err)
@@ -73,7 +73,7 @@ export default {
           .get('/favorites/guides')
           .then(res => {
             console.log(res.data)
-            store.commit('setGuides', res.data)
+            store.commit('setFavoriteGuides', res.data)
           })
           .catch((err) => {
             console.log(err)
@@ -84,7 +84,6 @@ export default {
       return {
         user: user,
         guides: guides,
-        favorites: favorites,
         advices: advices,
         guideUrl: null,
       }
